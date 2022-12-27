@@ -15,6 +15,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         public var backgroundColor: Color = .black
         public var showDate: Bool = true
         public var shareLink: Bool = false
+        public var images: [URL: Image] = [:]
 
         fileprivate var appearance: Appearance {
             Appearance(textColor: textColor, backgroundColor: backgroundColor)
@@ -27,6 +28,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     public enum Action: Equatable {
         case requested(url: URL)
         case tootSniffCompleted(TaskResult<Toot>)
+        case loadImageCompleted(TaskResult<ImageLoadResponse>)
         case showDateToggled(Bool)
         case shareLinkToggled(Bool)
         case textColorModified(Color)
@@ -45,15 +47,33 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             }
         case let .tootSniffCompleted(.success(toot)):
             state.toot = toot
-            return .task { [state] in
+            var effect = EffectTask.task { [state] in
                 try await rerenderTask(state: state)
             }
+            for url in toot.allImages {
+                effect = effect.concatenate(with: EffectTask.task {
+                    .loadImageCompleted(await TaskResult {
+                        let (data, _) = try await urlSession.data(from: url)
+                        guard let image = UIImage(data: data) else { throw UnableToParseImage() }
+                        return ImageLoadResponse(url, Image(uiImage: image))
+                    })
+                })
+            }
+            return effect
         case let .tootSniffCompleted(.failure(error)):
             state.toot = nil
             print(error)
             return .task { [state] in
                 try await rerenderTask(state: state)
             }
+        case let .loadImageCompleted(.success(response)):
+            state.images[response.url] = response.image
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
+        case let .loadImageCompleted(.failure(error)):
+            print(error)
+            return .none
         case let .showDateToggled(show):
             state.showDate = show
             return .task { [state] in
@@ -89,12 +109,27 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 guard let toot = state.toot else {
                     throw UnableToRender()
                 }
-                guard let image = await ImageRenderer(content: ScreenshotView(toot: toot, appearance: state.appearance, showDate: state.showDate)).uiImage else {
+                guard let image = await ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, appearance: state.appearance, showDate: state.showDate)).uiImage else {
                     throw UnableToRender()
                 }
                 return Image(uiImage: image)
             }
         )
+    }
+
+    public struct ImageLoadResponse: Equatable, Sendable {
+
+        public let url: URL
+        public let image: Image
+
+        internal init(_ url: URL, _ image: Image) {
+            self.url = url
+            self.image = image
+        }
+
+    }
+
+    struct UnableToParseImage: Error {
     }
 
     struct UnableToRender: Error {
@@ -105,11 +140,12 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 struct ScreenshotView: View, Sendable {
 
     let toot: Toot
+    let images: [URL: Image]
     let appearance: Appearance
     let showDate: Bool
 
     var body: some View {
-        TootView(toot: toot, appearance: appearance, showDate: showDate)
+        TootView(toot: toot, images: images, appearance: appearance, showDate: showDate)
             .frame(width: 400)
     }
 
@@ -128,7 +164,7 @@ public struct ExportFeatureView: View {
             Group {
                 if let toot = viewStore.toot {
                     VStack {
-                        TootView(toot: toot, appearance: viewStore.appearance, showDate: viewStore.showDate)
+                        TootView(toot: toot, images: viewStore.images, appearance: viewStore.appearance, showDate: viewStore.showDate)
                         Spacer()
                         ColorPicker(selection: viewStore.binding(get: \.textColor, send: ExportFeature.Action.textColorModified).animation(), supportsOpacity: false) {
                             Text("Text Color")

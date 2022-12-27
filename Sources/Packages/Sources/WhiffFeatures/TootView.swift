@@ -6,9 +6,11 @@ struct TootView: View {
     let toot: Toot
     let appearance: Appearance
     let showDate: Bool
+    let images: [URL: Image]
 
-    init(toot: Toot, appearance: Appearance, showDate: Bool = true) {
+    init(toot: Toot, images: [URL: Image], appearance: Appearance, showDate: Bool = true) {
         self.toot = toot
+        self.images = images
         self.appearance = appearance
         self.showDate = showDate
     }
@@ -17,6 +19,7 @@ struct TootView: View {
         VStack(alignment: .leading, spacing: 10) {
             TooterView(
                 tooter: toot.account,
+                images: images,
                 appearance: appearance
             )
             Text(toot.content)
@@ -38,21 +41,24 @@ struct TootView: View {
 struct TooterView: View {
 
     let tooter: Tooter
+    let images: [URL: Image]
     let appearance: Appearance
 
     var body: some View {
         HStack(spacing: 10) {
-            AsyncImage(url: tooter.avatar) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } placeholder: {
-                Rectangle()
-                    .foregroundColor(.gray)
-                    .overlay {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                    }
+            Group {
+                if let image = images[tooter.avatar] {
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Rectangle()
+                        .foregroundColor(.gray)
+                        .overlay {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                        }
+                }
             }
             .frame(width: 60, height: 60)
             .mask(Circle())

@@ -8,6 +8,10 @@ public struct Toot: Equatable, Sendable, Codable {
     public var content: String
     public var account: Tooter
 
+    public var allImages: [URL] {
+        [account.avatar]
+    }
+
 }
 
 public struct Tooter: Equatable, Sendable, Codable {
