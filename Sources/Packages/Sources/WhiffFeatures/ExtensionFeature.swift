@@ -29,7 +29,7 @@ public struct ExtensionFeature: ReducerProtocol, Sendable {
             case .tappedDone:
                 return .task {
                     await dismissExtension(nil)
-                    return .tappedDone
+                    return .dismissed
                 }
             case .dismissed:
                 return .none

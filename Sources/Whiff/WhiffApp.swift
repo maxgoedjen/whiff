@@ -15,16 +15,6 @@ struct WhiffApp: App {
                     .onAppear {
                         ViewStore(store).send(.requested(url: URL(string: "https://mastodon.online/@kyleve/109543232439362633")!))
                     }
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarTrailing) {
-                            Button {
-                                ViewStore(store).send(.tappedSettings(true))
-                            } label: {
-                                Image(systemName: "gear")
-                            }
-                            
-                        }
-                    }
             }
         }
 

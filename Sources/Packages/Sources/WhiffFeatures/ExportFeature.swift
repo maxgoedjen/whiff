@@ -155,6 +155,7 @@ public struct ExportFeatureView: View {
                     VStack {
                         ScrollView {
                             TootView(toot: toot, images: viewStore.images, settings: viewStore.settings)
+                                .padding()
                         }
                         Spacer()
                         if let shareContent = viewStore.rendered {
@@ -165,7 +166,8 @@ public struct ExportFeatureView: View {
                                 .buttonStyle(.borderedProminent)
                                 .disabled(true)
                         }
-                    }.sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {
+                    }
+                    .sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {
                         SettingsFeatureView(store: store.scope(state: \.settings, action: ExportFeature.Action.settings))
                             .presentationDetents([.medium])
                     }
@@ -177,6 +179,17 @@ public struct ExportFeatureView: View {
                     }
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        viewStore.send(.tappedSettings(true))
+                    } label: {
+                        Image(systemName: "gear")
+                    }
+
+                }
+            }
+
         }
 
     }
