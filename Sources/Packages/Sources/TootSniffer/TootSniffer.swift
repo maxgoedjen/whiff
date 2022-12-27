@@ -67,17 +67,11 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
 
 }
 
-struct NotAMastadonPost: Error {
+struct NotAMastadonPost: LocalizedError {
+    let errorDescription: String? = "This isn't a Mastodon Post."
 }
 
-struct NoLinkParameter: Error {
+struct NoLinkParameter: LocalizedError {
+    let errorDescription: String? = "Unable to parse Toot."
 }
 
-struct UnableToParseAuthorName: Error {
-}
-
-struct UnableToParseAuthorImage: Error {
-}
-
-struct UnableToParseDate: Error {
-}

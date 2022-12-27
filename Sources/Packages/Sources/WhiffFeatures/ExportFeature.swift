@@ -11,6 +11,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
+        public var errorMessage: String?
         public var rendered: Image?
         public var showingSettings = false
         public var settings = SettingsFeature.State()
@@ -39,11 +40,14 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         Reduce { state, action in
             switch action {
             case let .requested(url):
+                state.toot = nil
+                state.images = [:]
                 return .task {
                     .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
                 }
             case let .tootSniffCompleted(.success(toot)):
                 state.toot = toot
+                state.errorMessage = nil
                 var effect = EffectTask.task { [state] in
                     try await rerenderTask(state: state)
                 }
@@ -59,7 +63,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 return effect
             case let .tootSniffCompleted(.failure(error)):
                 state.toot = nil
-                print(error)
+                if let localized = error as? LocalizedError {
+                    state.errorMessage = localized.errorDescription
+                } else {
+                    state.errorMessage = "Unknown Error"
+                }
                 return .task { [state] in
                     try await rerenderTask(state: state)
                 }
@@ -165,7 +173,7 @@ public struct ExportFeatureView: View {
                         Spacer()
                         if let shareContent = viewStore.rendered {
                             ShareLink(item: shareContent, preview: SharePreview("Rendered Toot"))
-                            .buttonStyle(.borderedProminent)
+                                .buttonStyle(.borderedProminent)
                         } else {
                             ShareLink(item: "")
                                 .buttonStyle(.borderedProminent)
@@ -175,6 +183,12 @@ public struct ExportFeatureView: View {
                     .sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {
                         SettingsFeatureView(store: store.scope(state: \.settings, action: ExportFeature.Action.settings))
                             .presentationDetents([.medium])
+                    }
+                } else if let error = viewStore.errorMessage {
+                    VStack {
+                        Text("Error")
+                            .font(.headline)
+                        Text(error)
                     }
                 } else {
                     VStack {
