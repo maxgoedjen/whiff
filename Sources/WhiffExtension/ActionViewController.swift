@@ -5,22 +5,37 @@ import SwiftUI
 import ComposableArchitecture
 import WhiffFeatures
 
-final class ShareExtension: UIHostingController<ExportFeatureView> {
+final class ShareExtension: UIHostingController<ExtensionFeatureView> {
 
-    let store = Store(initialState: .init(), reducer: ExportFeature())
+    var store: StoreOf<ExtensionFeature>!
 
     required init?(coder aDecoder: NSCoder) {
-        let rootView = ExportFeatureView(store: store)
-        super.init(coder: aDecoder, rootView: rootView)
+        // Stub impl to make IB happy
+        // Real stuff happens in loadView
+        let stub = ExtensionFeatureView(store: Store(initialState: .init(), reducer: ExtensionFeature()))
+        super.init(coder: aDecoder, rootView: stub)
+    }
+
+    override func loadView() {
+        super.loadView()
+        let uncheckedContext = UncheckedSendable(context)
+        store = Store(initialState: .init(), reducer: ExtensionFeature()
+            .dependency(\.dismissExtension) { @MainActor @Sendable [uncheckedContext] error in
+                if let error {
+                    uncheckedContext.value.cancelRequest(withError: error)
+                } else {
+                    uncheckedContext.value.completeRequest(returningItems: [], completionHandler: nil)
+                }
+            })
+        rootView = ExtensionFeatureView(store: store)
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         Task {
             do {
                 ViewStore(store)
-                    .send(.requested(url: try await url))
+                    .send(.export(.requested(url: try await url)))
             } catch {
                 context.cancelRequest(withError: error)
             }
@@ -45,10 +60,6 @@ final class ShareExtension: UIHostingController<ExportFeatureView> {
 
     var context: NSExtensionContext {
         self.extensionContext!
-    }
-
-    @objc func done(_ sender: UIButton) {
-        context.completeRequest(returningItems: context.inputItems, completionHandler: nil)
     }
 
 }

@@ -11,7 +11,7 @@ private enum TootSnifferKey: DependencyKey {
 }
 
 extension DependencyValues {
-    var tootSniffer: any TootSnifferProtocol {
+    public var tootSniffer: any TootSnifferProtocol {
         get { self[TootSnifferKey.self] }
         set { self[TootSnifferKey.self] = newValue }
     }
@@ -25,8 +25,22 @@ private enum ScreenScaleKey: DependencyKey {
 }
 
 extension DependencyValues {
-    var screenScale: Double {
+    public var screenScale: Double {
         get { self[ScreenScaleKey.self] }
         set { self[ScreenScaleKey.self] = newValue }
+    }
+}
+
+private enum DismissExtensionKey: DependencyKey {
+    @MainActor static let liveValue: @MainActor @Sendable (Error?) -> Void = { _ in }
+    #if DEBUG
+    @MainActor static let testValue: @MainActor @Sendable (Error?) -> Void = { _ in }
+    #endif
+}
+
+extension DependencyValues {
+    public var dismissExtension: @MainActor @Sendable (Error?) -> Void {
+        get { self[DismissExtensionKey.self] }
+        set { self[DismissExtensionKey.self] = newValue }
     }
 }
