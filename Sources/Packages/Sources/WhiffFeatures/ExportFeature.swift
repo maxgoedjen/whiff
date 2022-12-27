@@ -7,6 +7,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     @Dependency(\.tootSniffer) var tootSniffer
     @Dependency(\.urlSession) var urlSession
+    @Dependency(\.screenScale) var screenScale
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
@@ -105,11 +106,13 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     private func rerenderTask(state: State) async throws -> Action {
         .rerendered(
-            await TaskResult {
+            await TaskResult { @MainActor in
                 guard let toot = state.toot else {
                     throw UnableToRender()
                 }
-                guard let image = await ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, appearance: state.appearance, showDate: state.showDate)).uiImage else {
+                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, appearance: state.appearance, showDate: state.showDate))
+                renderer.scale = screenScale
+                guard let image = renderer.uiImage else {
                     throw UnableToRender()
                 }
                 return Image(uiImage: image)
@@ -196,7 +199,10 @@ public struct ExportFeatureView: View {
             }
             .padding()
             .task {
-                viewStore.send(.requested(url: URL(string: "https://mstdn.social/@lolennui/109547842480496094")!))
+//                viewStore.send(.requested(url: URL(string: "https://mstdn.social/@lolennui/109547842480496094")!))
+                //                viewStore.send(.requested(url: URL(string: "https://mastodon.online/@kyleve/109581453246352600")!))
+                viewStore.send(.requested(url: URL(string: "https://mastodon.online/@kyleve/109581453246352600")!))
+//            https://mastodon.social/@gaycats@botsin.space/109584856417086346
             }
         }
 
