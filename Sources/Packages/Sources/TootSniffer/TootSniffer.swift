@@ -38,7 +38,7 @@ public final class TootSniffer: TootSnifferProtocol {
             let container = try decoder.singleValueContainer()
             let string = try container.decode(String.self)
             let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFractionalSeconds]
+            formatter.formatOptions = [.withFractionalSeconds, .withFullDate, .withFullTime]
             guard let date = formatter.date(from: string) else {
                 throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to parse date")
             }
@@ -52,6 +52,8 @@ public final class TootSniffer: TootSnifferProtocol {
         let strippedContent = raw.content.replacing(regex, with: "")
         var cleaned = raw
         cleaned.content = strippedContent
+        // Uncomment to generate JSON for previews
+//        print(String(data: try! JSONEncoder().encode(cleaned), encoding: .utf8)!)
         return cleaned
     }
 
