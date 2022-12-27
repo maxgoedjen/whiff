@@ -55,6 +55,7 @@
 		5030F64E295AACCD002939E9 /* WhiffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhiffApp.swift; sourceTree = "<group>"; };
 		5030F652295AACCE002939E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5030F655295AACCE002939E9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		50AA2AED295B9ECD005BC885 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -128,6 +129,7 @@
 		5030F64D295AACCD002939E9 /* Whiff */ = {
 			isa = PBXGroup;
 			children = (
+				50AA2AED295B9ECD005BC885 /* Info.plist */,
 				5030F64E295AACCD002939E9 /* WhiffApp.swift */,
 				5030F652295AACCE002939E9 /* Assets.xcassets */,
 				5030F654295AACCE002939E9 /* Preview Content */,
@@ -467,6 +469,7 @@
 				DEVELOPMENT_TEAM = Z72PRUAWF6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Whiff/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -497,6 +500,7 @@
 				DEVELOPMENT_TEAM = Z72PRUAWF6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Whiff/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
