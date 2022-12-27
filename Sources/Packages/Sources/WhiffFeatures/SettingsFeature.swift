@@ -88,10 +88,10 @@ public struct SettingsFeatureView: View {
                         Text("Background Color")
                     }
                     Toggle("Show Date",
-                           isOn: viewStore.binding(get: \.showDate, send: SettingsFeature.Action.showDateToggled))
+                           isOn: viewStore.binding(get: \.showDate, send: SettingsFeature.Action.showDateToggled).animation())
                     Toggle("Round Corners on Export",
-                           isOn: viewStore.binding(get: \.roundCorners, send: SettingsFeature.Action.roundCornersToggled))
-                    Picker("Image Display", selection: viewStore.binding(get: \.imageStyle, send: SettingsFeature.Action.imageStyleChanged)) {
+                           isOn: viewStore.binding(get: \.roundCorners, send: SettingsFeature.Action.roundCornersToggled).animation())
+                    Picker("Image Display", selection: viewStore.binding(get: \.imageStyle, send: SettingsFeature.Action.imageStyleChanged).animation()) {
                         ForEach(SettingsFeature.State.ImageStyle.allCases) { style in
                             Text(style.rawValue)
                                 .tag(style)

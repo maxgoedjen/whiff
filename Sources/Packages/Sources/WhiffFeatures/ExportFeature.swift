@@ -155,6 +155,11 @@ public struct ExportFeatureView: View {
                     VStack {
                         ScrollView {
                             TootView(toot: toot, images: viewStore.images, settings: viewStore.settings)
+                                .cornerRadius(15)
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(.white.opacity(0.5), lineWidth: 3)
+                                }
                                 .padding()
                         }
                         Spacer()
