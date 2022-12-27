@@ -1,6 +1,6 @@
 import SwiftUI
 
-public struct Toot: Equatable, Sendable {
+public struct Toot: Equatable, Sendable, Codable {
 
     public var source: URL
     public var date: Date
@@ -10,7 +10,7 @@ public struct Toot: Equatable, Sendable {
 
 }
 
-public struct Tooter: Equatable, Sendable {
+public struct Tooter: Equatable, Sendable, Codable {
 
     public var image: URL
     public var name: String

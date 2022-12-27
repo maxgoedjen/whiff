@@ -19,6 +19,7 @@ public final class TootSniffer: TootSnifferProtocol {
         let response = rawResponse as! HTTPURLResponse
         guard response.allHeaderFields["Server"] as? String == "Mastodon" else { throw NotAMastadonPost() }
         let parser = try await TootParser(url: url)
+        print(String(data: try JSONEncoder().encode(try parser.toot), encoding: .utf8)!)
         return try parser.toot
     }
 
