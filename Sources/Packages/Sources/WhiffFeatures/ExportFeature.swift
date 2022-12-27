@@ -12,15 +12,9 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     public struct State: Equatable, Sendable {
         public var toot: Toot?
         public var rendered: Image?
-        public var textColor: Color = .white
-        public var backgroundColor: Color = .black
-        public var showDate: Bool = true
-        public var shareLink: Bool = false
+        public var showingSettings = false
+        public var settings = SettingsFeature.State()
         public var images: [URL: Image] = [:]
-
-        fileprivate var appearance: Appearance {
-            Appearance(textColor: textColor, backgroundColor: backgroundColor)
-        }
 
         public init() {
         }
@@ -30,77 +24,67 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         case requested(url: URL)
         case tootSniffCompleted(TaskResult<Toot>)
         case loadImageCompleted(TaskResult<ImageLoadResponse>)
-        case showDateToggled(Bool)
-        case shareLinkToggled(Bool)
-        case textColorModified(Color)
-        case backgroundColorModified(Color)
+        case tappedSettings(Bool)
+        case settings(SettingsFeature.Action)
         case rerendered(TaskResult<Image>)
     }
 
     public init() {
     }
 
-    public func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
-        switch action {
-        case let .requested(url):
-            return .task {
-                .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
-            }
-        case let .tootSniffCompleted(.success(toot)):
-            state.toot = toot
-            var effect = EffectTask.task { [state] in
-                try await rerenderTask(state: state)
-            }
-            for url in toot.allImages {
-                effect = effect.concatenate(with: EffectTask.task {
-                    .loadImageCompleted(await TaskResult {
-                        let (data, _) = try await urlSession.data(from: url)
-                        guard let image = UIImage(data: data) else { throw UnableToParseImage() }
-                        return ImageLoadResponse(url, Image(uiImage: image))
+    public var body: some ReducerProtocol<State, Action> {
+        Scope(state: \.settings, action: /Action.settings) {
+            SettingsFeature()
+        }
+        Reduce { state, action in
+            switch action {
+            case let .requested(url):
+                return .task {
+                    .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
+                }
+            case let .tootSniffCompleted(.success(toot)):
+                state.toot = toot
+                var effect = EffectTask.task { [state] in
+                    try await rerenderTask(state: state)
+                }
+                for url in toot.allImages {
+                    effect = effect.concatenate(with: EffectTask.task {
+                        .loadImageCompleted(await TaskResult {
+                            let (data, _) = try await urlSession.data(from: url)
+                            guard let image = UIImage(data: data) else { throw UnableToParseImage() }
+                            return ImageLoadResponse(url, Image(uiImage: image))
+                        })
                     })
-                })
+                }
+                return effect
+            case let .tootSniffCompleted(.failure(error)):
+                state.toot = nil
+                print(error)
+                return .task { [state] in
+                    try await rerenderTask(state: state)
+                }
+            case let .loadImageCompleted(.success(response)):
+                state.images[response.url] = response.image
+                return .task { [state] in
+                    try await rerenderTask(state: state)
+                }
+            case let .loadImageCompleted(.failure(error)):
+                print(error)
+                return .none
+            case let .tappedSettings(showing):
+                state.showingSettings = showing
+                return .none
+            case .settings:
+                return .task { [state] in
+                    try await rerenderTask(state: state)
+                }
+            case .rerendered(.failure):
+                state.rendered = nil
+                return .none
+            case let .rerendered(.success(image)):
+                state.rendered = image
+                return .none
             }
-            return effect
-        case let .tootSniffCompleted(.failure(error)):
-            state.toot = nil
-            print(error)
-            return .task { [state] in
-                try await rerenderTask(state: state)
-            }
-        case let .loadImageCompleted(.success(response)):
-            state.images[response.url] = response.image
-            return .task { [state] in
-                try await rerenderTask(state: state)
-            }
-        case let .loadImageCompleted(.failure(error)):
-            print(error)
-            return .none
-        case let .showDateToggled(show):
-            state.showDate = show
-            return .task { [state] in
-                try await rerenderTask(state: state)
-            }
-        case let .shareLinkToggled(share):
-            state.shareLink = share
-            return .task { [state] in
-                try await rerenderTask(state: state)
-            }
-        case let .textColorModified(color):
-            state.textColor = color
-            return .task { [state] in
-                try await rerenderTask(state: state)
-            }
-        case let .backgroundColorModified(color):
-            state.backgroundColor = color
-            return .task { [state] in
-                try await rerenderTask(state: state)
-            }
-        case .rerendered(.failure):
-            state.rendered = nil
-            return .none
-        case let .rerendered(.success(image)):
-            state.rendered = image
-            return .none
         }
     }
 
@@ -110,7 +94,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 guard let toot = state.toot else {
                     throw UnableToRender()
                 }
-                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, appearance: state.appearance, showDate: state.showDate))
+                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, appearance: state.settings.appearance, showDate: state.settings.showDate))
                 renderer.scale = screenScale
                 guard let image = renderer.uiImage else {
                     throw UnableToRender()
@@ -167,19 +151,8 @@ public struct ExportFeatureView: View {
             Group {
                 if let toot = viewStore.toot {
                     VStack {
-                        TootView(toot: toot, images: viewStore.images, appearance: viewStore.appearance, showDate: viewStore.showDate)
+                        TootView(toot: toot, images: viewStore.images, appearance: viewStore.settings.appearance, showDate: viewStore.settings.showDate)
                         Spacer()
-                        ColorPicker(selection: viewStore.binding(get: \.textColor, send: ExportFeature.Action.textColorModified).animation(), supportsOpacity: false) {
-                            Text("Text Color")
-                        }
-                        ColorPicker(selection: viewStore.binding(get: \.backgroundColor, send: ExportFeature.Action.backgroundColorModified).animation(), supportsOpacity: false) {
-                            Text("Background Color")
-                        }
-                        Toggle("Show Date",
-                               isOn: viewStore.binding(get: \.showDate, send: ExportFeature.Action.showDateToggled))
-                        Toggle("Share Link with Image",
-                               isOn: viewStore.binding(get: \.shareLink, send: ExportFeature.Action.shareLinkToggled))
-                        .hidden() // FIXME: This
                         if let shareContent = viewStore.rendered {
                             ShareLink(item: shareContent, preview: SharePreview("Rendered Toot"))
                             .buttonStyle(.borderedProminent)
@@ -188,6 +161,9 @@ public struct ExportFeatureView: View {
                                 .buttonStyle(.borderedProminent)
                                 .disabled(true)
                         }
+                    }.sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {
+                        SettingsFeatureView(store: store.scope(state: \.settings, action: ExportFeature.Action.settings))
+                            .presentationDetents([.medium])
                     }
                 } else {
                     VStack {

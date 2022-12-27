@@ -1,5 +1,5 @@
 import ComposableArchitecture
-@preconcurrency import SwiftUI
+import SwiftUI
 import TootSniffer
 
 public struct ExtensionFeature: ReducerProtocol, Sendable {

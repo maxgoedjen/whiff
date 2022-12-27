@@ -94,9 +94,9 @@ struct TooterView: View {
 
 }
 
-struct Appearance: Equatable, Sendable {
+public struct Appearance: Equatable, Sendable {
 
-    let textColor: Color
-    let backgroundColor: Color
+    public let textColor: Color
+    public let backgroundColor: Color
 
 }
