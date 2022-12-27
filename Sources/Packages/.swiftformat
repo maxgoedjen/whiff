@@ -1,0 +1,40 @@
+# format options
+
+--allman false
+--binarygrouping 4,8
+--commas always
+--comments indent
+--decimalgrouping 3,6
+--elseposition same-line
+--empty void
+--emptybraces linebreak
+--exponentcase lowercase
+--exponentgrouping disabled
+--fractiongrouping disabled
+--header strip
+--hexgrouping 4,8
+--hexliteralcase uppercase
+--ifdef no-indent
+--indent 4
+--indentcase false
+--importgrouping testable-bottom
+--maxwidth none
+--octalgrouping 4,8
+--operatorfunc spaced
+--patternlet hoist
+--ranges no-space
+--self remove
+--semicolons inline
+--stripunusedargs closure-only
+--swiftversion 5.7
+--trimwhitespace always
+--wraparguments preserve
+--wrapcollections preserve
+
+# rules
+
+--enable isEmpty, \
+redundantType
+
+--disable blankLinesAtEndOfScope,\
+	blankLinesAtStartOfScope
