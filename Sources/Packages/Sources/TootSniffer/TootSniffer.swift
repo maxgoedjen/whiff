@@ -45,13 +45,10 @@ public final class TootSniffer: TootSnifferProtocol {
             return date
         }
         let raw = try decoder.decode(Toot.self, from: data)
-        // I know,
-        // dO Not Use reGex TO ParSE hTMl
-        // but I'm not going to actually parse this HTML, so.
-        let regex = #/<[^>]+>/#
-        let strippedContent = raw.content.replacing(regex, with: "")
+        // Gotta be unicode, not utf8
+        let attributed = try NSAttributedString(data: raw.content.data(using: .unicode)!, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil)
         var cleaned = raw
-        cleaned.content = strippedContent
+        cleaned.content = attributed.string
         // Uncomment to generate JSON for previews
 //        print(String(data: try! JSONEncoder().encode(cleaned), encoding: .utf8)!)
         return cleaned
