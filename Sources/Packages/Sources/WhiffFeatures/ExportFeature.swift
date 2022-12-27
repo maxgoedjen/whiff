@@ -1,7 +1,19 @@
 import ComposableArchitecture
 import Foundation
-import SwiftUI
+@preconcurrency import SwiftUI
 import TootSniffer
+
+// public final class AnyTransferable: Transferable {
+//
+//    public static var transferRepresentation: Data {
+//        Data()
+//    }
+//
+//    init<T: Transferable>(_ transferable: T) {
+////        transferable.transferRepresentation
+//    }
+//
+// }
 
 public struct ExportFeature: ReducerProtocol, Sendable {
 
@@ -9,10 +21,20 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
-        public var textColor: UncheckedSendable<Color> = UncheckedSendable(.white)
-        public var backgroundColor: UncheckedSendable<Color> = UncheckedSendable(.black)
+        public var rendered: Image?
+        public var textColor: Color = .white
+        public var backgroundColor: Color = .black
         public var showDate: Bool = true
         public var shareLink: Bool = false
+
+        fileprivate var appearance: Appearance {
+            Appearance(textColor: textColor, backgroundColor: backgroundColor)
+        }
+
+        fileprivate var shareContent: [any Transferable] {
+            [
+            ]
+        }
 
         public init() {
         }
@@ -25,7 +47,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         case shareLinkToggled(Bool)
         case textColorModified(Color)
         case backgroundColorModified(Color)
-        case tappedShare
+        case rerendered(TaskResult<Image>)
     }
 
     public init() {
@@ -39,28 +61,74 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             }
         case let .tootSniffCompleted(.success(toot)):
             state.toot = toot
-            return .none
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
         case let .tootSniffCompleted(.failure(error)):
             state.toot = nil
             print(error)
-            return .none
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
         case let .showDateToggled(show):
             state.showDate = show
-            return .none
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
         case let .shareLinkToggled(share):
             state.shareLink = share
-            return .none
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
         case let .textColorModified(color):
-            state.textColor = UncheckedSendable(color)
-            return .none
+            state.textColor = color
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
         case let .backgroundColorModified(color):
-            state.backgroundColor = UncheckedSendable(color)
+            state.backgroundColor = color
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
+        case .rerendered(.failure):
+            state.rendered = nil
             return .none
-        case .tappedShare:
-            print("SHARE")
+        case let .rerendered(.success(image)):
+            state.rendered = image
             return .none
         }
     }
+
+    private func rerenderTask(state: State) async throws -> Action {
+        .rerendered(
+            await TaskResult {
+                guard let toot = state.toot else {
+                    throw UnableToRender()
+                }
+                guard let image = await ImageRenderer(content: ScreenshotView(toot: toot, appearance: state.appearance, showDate: state.showDate)).uiImage else {
+                    throw UnableToRender()
+                }
+                return Image(uiImage: image)
+            }
+        )
+    }
+
+    struct UnableToRender: Error {
+    }
+
+}
+
+struct ScreenshotView: View, Sendable {
+
+    let toot: Toot
+    let appearance: Appearance
+    let showDate: Bool
+
+    var body: some View {
+        TootView(toot: toot, appearance: appearance, showDate: showDate)
+            .frame(width: 400)
+    }
+
 
 }
 
@@ -77,22 +145,26 @@ public struct ExportFeatureView: View {
             Group {
                 if let toot = viewStore.toot {
                     VStack {
-                        TootView(toot: toot, appearance: Appearance(textColor: viewStore.textColor.value, backgroundColor: viewStore.backgroundColor.value), showDate: viewStore.showDate)
+                        TootView(toot: toot, appearance: viewStore.appearance, showDate: viewStore.showDate)
                         Spacer()
-                        ColorPicker(selection: viewStore.binding(get: \.textColor.value, send: ExportFeature.Action.textColorModified).animation(), supportsOpacity: false) {
+                        ColorPicker(selection: viewStore.binding(get: \.textColor, send: ExportFeature.Action.textColorModified).animation(), supportsOpacity: false) {
                             Text("Text Color")
                         }
-                        ColorPicker(selection: viewStore.binding(get: \.backgroundColor.value, send: ExportFeature.Action.backgroundColorModified).animation(), supportsOpacity: false) {
+                        ColorPicker(selection: viewStore.binding(get: \.backgroundColor, send: ExportFeature.Action.backgroundColorModified).animation(), supportsOpacity: false) {
                             Text("Background Color")
                         }
                         Toggle("Show Date",
                                isOn: viewStore.binding(get: \.showDate, send: ExportFeature.Action.showDateToggled))
                         Toggle("Share Link with Image",
                                isOn: viewStore.binding(get: \.shareLink, send: ExportFeature.Action.shareLinkToggled))
-                        Button("Share") {
-                            viewStore.send(.tappedShare)
+                        if let shareContent = viewStore.rendered {
+                            ShareLink(item: shareContent, preview: SharePreview("Toot from \(toot.tooter.name)"))
+                                .buttonStyle(.borderedProminent)
+                        } else {
+                            ShareLink(item: "")
+                                .buttonStyle(.borderedProminent)
+                                .disabled(true)
                         }
-                        .buttonStyle(.borderedProminent)
                     }
                 } else {
                     VStack {

@@ -1,4 +1,4 @@
-import SwiftUI
+@preconcurrency import SwiftUI
 import TootSniffer
 
 struct TootView: View {
@@ -69,7 +69,7 @@ struct TooterView: View {
 
 }
 
-struct Appearance: Equatable {
+struct Appearance: Equatable, Sendable {
 
     let textColor: Color
     let backgroundColor: Color
