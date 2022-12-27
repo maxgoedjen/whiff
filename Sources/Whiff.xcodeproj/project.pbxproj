@@ -9,13 +9,47 @@
 /* Begin PBXBuildFile section */
 		502B1243295AAFD5002C9C11 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 502B1242295AAFD5002C9C11 /* ComposableArchitecture */; };
 		502B1248295AB2B7002C9C11 /* WhiffFeatures in Frameworks */ = {isa = PBXBuildFile; productRef = 502B1247295AB2B7002C9C11 /* WhiffFeatures */; };
+		502B124F295B69EA002C9C11 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 502B124E295B69EA002C9C11 /* UniformTypeIdentifiers.framework */; };
+		502B1254295B69EA002C9C11 /* ActionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502B1253295B69EA002C9C11 /* ActionViewController.swift */; };
+		502B1257295B69EA002C9C11 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 502B1255295B69EA002C9C11 /* MainInterface.storyboard */; };
+		502B125B295B69EA002C9C11 /* WhiffExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 502B124D295B69EA002C9C11 /* WhiffExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		502B1261295B6A65002C9C11 /* WhiffFeatures in Frameworks */ = {isa = PBXBuildFile; productRef = 502B1260295B6A65002C9C11 /* WhiffFeatures */; };
 		5030F64F295AACCD002939E9 /* WhiffApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5030F64E295AACCD002939E9 /* WhiffApp.swift */; };
 		5030F653295AACCE002939E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5030F652295AACCE002939E9 /* Assets.xcassets */; };
 		5030F656295AACCE002939E9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5030F655295AACCE002939E9 /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		502B1259295B69EA002C9C11 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5030F643295AACCD002939E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 502B124C295B69EA002C9C11;
+			remoteInfo = WhiffExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		502B125F295B69EA002C9C11 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				502B125B295B69EA002C9C11 /* WhiffExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		502B1245295AAFDA002C9C11 /* Packages */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = Packages; sourceTree = "<group>"; };
+		502B124D295B69EA002C9C11 /* WhiffExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = WhiffExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		502B124E295B69EA002C9C11 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
+		502B1253295B69EA002C9C11 /* ActionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionViewController.swift; sourceTree = "<group>"; };
+		502B1256295B69EA002C9C11 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/MainInterface.storyboard; sourceTree = "<group>"; };
+		502B1258295B69EA002C9C11 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5030F64B295AACCD002939E9 /* Whiff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Whiff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5030F64E295AACCD002939E9 /* WhiffApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhiffApp.swift; sourceTree = "<group>"; };
 		5030F652295AACCE002939E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -23,6 +57,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		502B124A295B69EA002C9C11 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				502B1261295B6A65002C9C11 /* WhiffFeatures in Frameworks */,
+				502B124F295B69EA002C9C11 /* UniformTypeIdentifiers.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5030F648295AACCD002939E9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,8 +89,19 @@
 		502B1246295AB2B7002C9C11 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				502B124E295B69EA002C9C11 /* UniformTypeIdentifiers.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		502B1250295B69EA002C9C11 /* WhiffExtension */ = {
+			isa = PBXGroup;
+			children = (
+				502B1253295B69EA002C9C11 /* ActionViewController.swift */,
+				502B1255295B69EA002C9C11 /* MainInterface.storyboard */,
+				502B1258295B69EA002C9C11 /* Info.plist */,
+			);
+			path = WhiffExtension;
 			sourceTree = "<group>";
 		};
 		5030F642295AACCD002939E9 = {
@@ -55,6 +109,7 @@
 			children = (
 				502B1244295AAFDA002C9C11 /* Packages */,
 				5030F64D295AACCD002939E9 /* Whiff */,
+				502B1250295B69EA002C9C11 /* WhiffExtension */,
 				5030F64C295AACCD002939E9 /* Products */,
 				502B1246295AB2B7002C9C11 /* Frameworks */,
 			);
@@ -64,6 +119,7 @@
 			isa = PBXGroup;
 			children = (
 				5030F64B295AACCD002939E9 /* Whiff.app */,
+				502B124D295B69EA002C9C11 /* WhiffExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -89,6 +145,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		502B124C295B69EA002C9C11 /* WhiffExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 502B125C295B69EA002C9C11 /* Build configuration list for PBXNativeTarget "WhiffExtension" */;
+			buildPhases = (
+				502B1249295B69EA002C9C11 /* Sources */,
+				502B124A295B69EA002C9C11 /* Frameworks */,
+				502B124B295B69EA002C9C11 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = WhiffExtension;
+			packageProductDependencies = (
+				502B1260295B6A65002C9C11 /* WhiffFeatures */,
+			);
+			productName = WhiffExtension;
+			productReference = 502B124D295B69EA002C9C11 /* WhiffExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		5030F64A295AACCD002939E9 /* Whiff */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5030F659295AACCE002939E9 /* Build configuration list for PBXNativeTarget "Whiff" */;
@@ -96,10 +172,12 @@
 				5030F647295AACCD002939E9 /* Sources */,
 				5030F648295AACCD002939E9 /* Frameworks */,
 				5030F649295AACCD002939E9 /* Resources */,
+				502B125F295B69EA002C9C11 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				502B125A295B69EA002C9C11 /* PBXTargetDependency */,
 			);
 			name = Whiff;
 			packageProductDependencies = (
@@ -120,6 +198,9 @@
 				LastSwiftUpdateCheck = 1420;
 				LastUpgradeCheck = 1420;
 				TargetAttributes = {
+					502B124C295B69EA002C9C11 = {
+						CreatedOnToolsVersion = 14.2;
+					};
 					5030F64A295AACCD002939E9 = {
 						CreatedOnToolsVersion = 14.2;
 					};
@@ -142,11 +223,20 @@
 			projectRoot = "";
 			targets = (
 				5030F64A295AACCD002939E9 /* Whiff */,
+				502B124C295B69EA002C9C11 /* WhiffExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		502B124B295B69EA002C9C11 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				502B1257295B69EA002C9C11 /* MainInterface.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5030F649295AACCD002939E9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -159,6 +249,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		502B1249295B69EA002C9C11 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				502B1254295B69EA002C9C11 /* ActionViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5030F647295AACCD002939E9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -169,7 +267,76 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		502B125A295B69EA002C9C11 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 502B124C295B69EA002C9C11 /* WhiffExtension */;
+			targetProxy = 502B1259295B69EA002C9C11 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		502B1255295B69EA002C9C11 /* MainInterface.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				502B1256295B69EA002C9C11 /* Base */,
+			);
+			name = MainInterface.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
 /* Begin XCBuildConfiguration section */
+		502B125D295B69EA002C9C11 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z72PRUAWF6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhiffExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Get a Whiff";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.maxgoedjen.whiff.WhiffExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		502B125E295B69EA002C9C11 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z72PRUAWF6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WhiffExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Get a Whiff";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.maxgoedjen.whiff.WhiffExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		5030F657295AACCE002939E9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -287,6 +454,7 @@
 		5030F65A295AACCE002939E9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -316,6 +484,7 @@
 		5030F65B295AACCE002939E9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -345,6 +514,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		502B125C295B69EA002C9C11 /* Build configuration list for PBXNativeTarget "WhiffExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				502B125D295B69EA002C9C11 /* Debug */,
+				502B125E295B69EA002C9C11 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5030F646295AACCD002939E9 /* Build configuration list for PBXProject "Whiff" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -383,6 +561,10 @@
 			productName = ComposableArchitecture;
 		};
 		502B1247295AB2B7002C9C11 /* WhiffFeatures */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WhiffFeatures;
+		};
+		502B1260295B6A65002C9C11 /* WhiffFeatures */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WhiffFeatures;
 		};

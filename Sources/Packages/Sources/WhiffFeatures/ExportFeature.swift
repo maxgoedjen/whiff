@@ -198,12 +198,6 @@ public struct ExportFeatureView: View {
                 }
             }
             .padding()
-            .task {
-//                viewStore.send(.requested(url: URL(string: "https://mstdn.social/@lolennui/109547842480496094")!))
-                //                viewStore.send(.requested(url: URL(string: "https://mastodon.online/@kyleve/109581453246352600")!))
-                viewStore.send(.requested(url: URL(string: "https://mastodon.online/@kyleve/109581453246352600")!))
-//            https://mastodon.social/@gaycats@botsin.space/109584856417086346
-            }
         }
 
     }
