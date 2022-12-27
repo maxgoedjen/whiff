@@ -3,21 +3,10 @@ import Foundation
 @preconcurrency import SwiftUI
 import TootSniffer
 
-// public final class AnyTransferable: Transferable {
-//
-//    public static var transferRepresentation: Data {
-//        Data()
-//    }
-//
-//    init<T: Transferable>(_ transferable: T) {
-////        transferable.transferRepresentation
-//    }
-//
-// }
-
 public struct ExportFeature: ReducerProtocol, Sendable {
 
     @Dependency(\.tootSniffer) var tootSniffer
+    @Dependency(\.urlSession) var urlSession
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
@@ -29,11 +18,6 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
         fileprivate var appearance: Appearance {
             Appearance(textColor: textColor, backgroundColor: backgroundColor)
-        }
-
-        fileprivate var shareContent: [any Transferable] {
-            [
-            ]
         }
 
         public init() {
@@ -129,7 +113,6 @@ struct ScreenshotView: View, Sendable {
             .frame(width: 400)
     }
 
-
 }
 
 public struct ExportFeatureView: View {
@@ -157,9 +140,10 @@ public struct ExportFeatureView: View {
                                isOn: viewStore.binding(get: \.showDate, send: ExportFeature.Action.showDateToggled))
                         Toggle("Share Link with Image",
                                isOn: viewStore.binding(get: \.shareLink, send: ExportFeature.Action.shareLinkToggled))
+                        .hidden() // FIXME: This
                         if let shareContent = viewStore.rendered {
-                            ShareLink(item: shareContent, preview: SharePreview("Toot from \(toot.tooter.name)"))
-                                .buttonStyle(.borderedProminent)
+                            ShareLink(item: shareContent, preview: SharePreview("Rendered Toot"))
+                            .buttonStyle(.borderedProminent)
                         } else {
                             ShareLink(item: "")
                                 .buttonStyle(.borderedProminent)
