@@ -13,7 +13,7 @@ struct WhiffApp: App {
             NavigationView {
                 ExportFeatureView(store: store)
                     .onAppear {
-                        ViewStore(store).send(.requested(url: URL(string: "https://mstdn.social/@lolennui/109547842480496094")!))
+                        ViewStore(store).send(.requested(url: URL(string: "https://mastodon.online/@kyleve/109543232439362633")!))
                     }
                     .toolbar {
                         ToolbarItem(placement: .navigationBarTrailing) {

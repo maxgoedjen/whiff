@@ -74,7 +74,10 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             case let .tappedSettings(showing):
                 state.showingSettings = showing
                 return .none
-            case .settings:
+            case let .settings(action):
+                if case .tappedDone = action {
+                    state.showingSettings = false
+                }
                 return .task { [state] in
                     try await rerenderTask(state: state)
                 }
@@ -94,7 +97,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 guard let toot = state.toot else {
                     throw UnableToRender()
                 }
-                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, appearance: state.settings.appearance, showDate: state.settings.showDate))
+                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, settings: state.settings))
                 renderer.scale = screenScale
                 guard let image = renderer.uiImage else {
                     throw UnableToRender()
@@ -128,11 +131,10 @@ struct ScreenshotView: View, Sendable {
 
     let toot: Toot
     let images: [URL: Image]
-    let appearance: Appearance
-    let showDate: Bool
+    let settings: SettingsFeature.State
 
     var body: some View {
-        TootView(toot: toot, images: images, appearance: appearance, showDate: showDate)
+        TootView(toot: toot, images: images, settings: settings)
             .frame(width: 400)
     }
 
@@ -151,7 +153,9 @@ public struct ExportFeatureView: View {
             Group {
                 if let toot = viewStore.toot {
                     VStack {
-                        TootView(toot: toot, images: viewStore.images, appearance: viewStore.settings.appearance, showDate: viewStore.settings.showDate)
+                        ScrollView {
+                            TootView(toot: toot, images: viewStore.images, settings: viewStore.settings)
+                        }
                         Spacer()
                         if let shareContent = viewStore.rendered {
                             ShareLink(item: shareContent, preview: SharePreview("Rendered Toot"))
@@ -173,7 +177,6 @@ public struct ExportFeatureView: View {
                     }
                 }
             }
-            .padding()
         }
 
     }

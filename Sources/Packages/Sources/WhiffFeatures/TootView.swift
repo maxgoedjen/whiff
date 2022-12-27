@@ -4,15 +4,20 @@ import TootSniffer
 struct TootView: View {
 
     let toot: Toot
-    let appearance: Appearance
-    let showDate: Bool
+    let settings: SettingsFeature.State
     let images: [URL: Image]
 
-    init(toot: Toot, images: [URL: Image], appearance: Appearance, showDate: Bool = true) {
+    init(toot: Toot, images: [URL: Image], settings: SettingsFeature.State) {
         self.toot = toot
         self.images = images
-        self.appearance = appearance
-        self.showDate = showDate
+        self.settings = settings
+    }
+
+    var content: some View {
+        Text(toot.content)
+            .foregroundColor(settings.textColor)
+            .font(.system(.title3, design: .rounded, weight: .regular))
+
     }
 
     var body: some View {
@@ -20,39 +25,47 @@ struct TootView: View {
             TooterView(
                 tooter: toot.account,
                 images: images,
-                appearance: appearance
+                settings: settings
             )
-            Text(toot.content)
-                .foregroundColor(appearance.textColor)
-                .font(.system(.title3, design: .rounded, weight: .regular))
-            HStack {
-                // FIXME: GRID/FAN?
-                ForEach(toot.mediaAttachments) { attachment in
-                    if let image = images[attachment.url] {
-                        image
-                            .resizable()
-                            .aspectRatio(attachment.size, contentMode: .fit)
-                    } else {
-                        Rectangle()
-                            .foregroundColor(.gray)
-                            .overlay {
-                                ProgressView()
-                                    .progressViewStyle(.circular)
-                            }
+            switch settings.imageStyle {
+            case .grid:
+                content
+                HStack {
+                    ForEach(toot.mediaAttachments) { attachment in
+                        ImageWrapperView(image: images[attachment.url], size: attachment.size, contentMode: .fit)
                     }
-
                 }
+            case .stacked:
+                content
+                VStack (spacing: 5) {
+                    ForEach(toot.mediaAttachments) { attachment in
+                        ImageWrapperView(image: images[attachment.url], size: attachment.size, contentMode: .fill)
+                    }
+                }
+            case .fan:
+                HStack {
+                    content
+                    ZStack {
+                        ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { (idx, attachment) in
+                            ImageWrapperView(image: images[attachment.url], size: attachment.size, contentMode: .fit)
+                                .frame(maxWidth: 50)
+                                .border(.white, width: 1)
+                                .shadow(radius: 5)
+                                .rotationEffect(Angle(degrees: Double(idx)) * 10)
 
+                        }
+                    }
+                }
             }
-            if showDate {
+            if settings.showDate {
                 Text(toot.createdAt.formatted())
-                    .foregroundColor(appearance.textColor)
+                    .foregroundColor(settings.textColor)
                     .font(.system(.footnote, design: .rounded, weight: .regular))
             }
         }
         .padding()
-        .background(appearance.backgroundColor)
-        .cornerRadius(15)
+        .background(settings.backgroundColor)
+        .cornerRadius(settings.roundCorners ? 15 : 0)
     }
 
 }
@@ -61,7 +74,7 @@ struct TooterView: View {
 
     let tooter: Tooter
     let images: [URL: Image]
-    let appearance: Appearance
+    let settings: SettingsFeature.State
 
     var body: some View {
         HStack(spacing: 10) {
@@ -83,10 +96,10 @@ struct TooterView: View {
             .mask(Circle())
             VStack(alignment: .leading) {
                 Text(tooter.displayName)
-                    .foregroundColor(appearance.textColor)
+                    .foregroundColor(settings.textColor)
                     .font(.system(.title2, design: .rounded, weight: .bold))
                 Text(tooter.username)
-                    .foregroundColor(appearance.textColor)
+                    .foregroundColor(settings.textColor)
                     .font(.system(.title3, design: .rounded, weight: .regular))
             }
         }
@@ -94,9 +107,29 @@ struct TooterView: View {
 
 }
 
-public struct Appearance: Equatable, Sendable {
+struct ImageWrapperView: View {
 
-    public let textColor: Color
-    public let backgroundColor: Color
+    var image: Image?
+    var size: CGSize
+    var contentMode: ContentMode
+
+    var body: some View {
+        Group {
+            if let image {
+                image
+                    .resizable()
+                    .aspectRatio(size, contentMode: contentMode)
+            } else {
+                Rectangle()
+                    .foregroundColor(.gray)
+                    .overlay {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                    }
+                    .aspectRatio(size, contentMode: .fit)
+            }
+        }
+    }
 
 }
+
