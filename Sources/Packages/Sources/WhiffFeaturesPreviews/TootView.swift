@@ -6,7 +6,10 @@ import TootSniffer
 struct TootViewPreview: PreviewProvider {
 
     static var previews: some View {
-        TootView(toot: .example)
+        VStack {
+            TootView(toot: .example, appearance: Appearance(textColor: .white, backgroundColor: .black), showDate: true)
+            TootView(toot: .example, appearance: Appearance(textColor: .black, backgroundColor: .white), showDate: false)
+        }
     }
 
 }

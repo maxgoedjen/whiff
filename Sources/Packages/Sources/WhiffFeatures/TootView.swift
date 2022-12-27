@@ -7,7 +7,7 @@ struct TootView: View {
     let appearance: Appearance
     let showDate: Bool
 
-    init(toot: Toot, appearance: Appearance = .init(), showDate: Bool = true) {
+    init(toot: Toot, appearance: Appearance, showDate: Bool = true) {
         self.toot = toot
         self.appearance = appearance
         self.showDate = showDate
@@ -73,10 +73,5 @@ struct Appearance: Equatable, Sendable {
 
     let textColor: Color
     let backgroundColor: Color
-
-    internal init(textColor: Color = .white, backgroundColor: Color = .black) {
-        self.textColor = textColor
-        self.backgroundColor = backgroundColor
-    }
 
 }

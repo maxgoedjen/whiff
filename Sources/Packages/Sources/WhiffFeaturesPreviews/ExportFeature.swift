@@ -6,7 +6,7 @@ import SwiftUI
 struct ExportFeatureViewPreview: PreviewProvider {
 
     static var previews: some View {
-        EmptyView()
+        ExportFeatureView(store: Store(initialState: .init(), reducer: ExportFeature()))
     }
 
 }
