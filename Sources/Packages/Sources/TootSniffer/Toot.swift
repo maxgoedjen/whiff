@@ -28,10 +28,10 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
     public let id: String
     public let url: URL
     public let meta: MediaAttachmentMeta
+    public let blurhash: String
     public var size: CGSize {
         CGSize(width: meta.original.width, height: meta.original.height)
     }
-    // FIXME: Add blurhash
 
 }
 

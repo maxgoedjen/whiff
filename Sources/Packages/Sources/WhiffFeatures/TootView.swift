@@ -1,5 +1,6 @@
 @preconcurrency import SwiftUI
 import TootSniffer
+import BlurHashKit
 
 struct TootView: View {
 
@@ -32,14 +33,14 @@ struct TootView: View {
                 content
                 HStack {
                     ForEach(toot.mediaAttachments) { attachment in
-                        ImageWrapperView(image: images[attachment.url], size: attachment.size, contentMode: .fit)
+                        ImageWrapperView(image: images[attachment.url], blurhash: attachment.blurhash, size: attachment.size, contentMode: .fit)
                     }
                 }
             case .stacked:
                 content
                 VStack (spacing: 5) {
                     ForEach(toot.mediaAttachments) { attachment in
-                        ImageWrapperView(image: images[attachment.url], size: attachment.size, contentMode: .fill)
+                        ImageWrapperView(image: images[attachment.url], blurhash: attachment.blurhash, size: attachment.size, contentMode: .fill)
                     }
                 }
             case .fan:
@@ -47,7 +48,7 @@ struct TootView: View {
                     content
                     ZStack {
                         ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { (idx, attachment) in
-                            ImageWrapperView(image: images[attachment.url], size: attachment.size, contentMode: .fit)
+                            ImageWrapperView(image: images[attachment.url], blurhash: attachment.blurhash, size: attachment.size, contentMode: .fit)
                                 .frame(maxWidth: 50)
                                 .border(.white, width: 1)
                                 .shadow(radius: 5)
@@ -110,6 +111,7 @@ struct TooterView: View {
 struct ImageWrapperView: View {
 
     var image: Image?
+    var blurhash: String?
     var size: CGSize
     var contentMode: ContentMode
 
@@ -120,14 +122,25 @@ struct ImageWrapperView: View {
                     .resizable()
                     .aspectRatio(size, contentMode: contentMode)
             } else {
-                Rectangle()
-                    .foregroundColor(.gray)
-                    .overlay {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                    }
-                    .aspectRatio(size, contentMode: .fit)
+                if let blurhash, let blurImage = BlurHash(string: blurhash)?.image(size: size) {
+                    Image(uiImage: blurImage)
+                        .resizable()
+                        .aspectRatio(size, contentMode: contentMode)
+                        .overlay {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                        }
+                } else {
+                    Rectangle()
+                        .foregroundColor(.gray)
+                        .overlay {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                        }
+                        .aspectRatio(size, contentMode: .fit)
+                }
             }
+
         }
     }
 

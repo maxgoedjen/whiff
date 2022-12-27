@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "blurhash",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/JanRajtr/blurhash.git",
+      "state" : {
+        "branch" : "feature/spm-support",
+        "revision" : "8838ee89725a92fc2f022c92ff9c321b4e9c3d20"
+      }
+    },
+    {
       "identity" : "combine-schedulers",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/pointfreeco/combine-schedulers",
