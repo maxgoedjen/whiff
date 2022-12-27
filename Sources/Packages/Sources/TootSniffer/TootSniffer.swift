@@ -14,9 +14,6 @@ public final class TootSniffer: TootSnifferProtocol {
     public func sniff(url: URL) async throws -> Toot {
         let apiURL = try await constructMastodonAPIURL(url: url)
         return try await loadToot(url: apiURL)
-//        let parser = try await TootParser(url: url)
-//        print(String(data: try JSONEncoder().encode(try parser.toot), encoding: .utf8)!)
-//        return try parser.toot
     }
 
     func constructMastodonAPIURL(url: URL) async throws -> URL {
