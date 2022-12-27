@@ -3,7 +3,11 @@ import Foundation
 import RegexBuilder
 import SwiftUI
 
-public final class TootSniffer {
+public protocol TootSnifferProtocol: Sendable {
+    func sniff(url: URL) async throws -> Toot
+}
+
+public final class TootSniffer: TootSnifferProtocol {
 
     public init() {
     }
@@ -102,6 +106,16 @@ private final class TootParser: NSObject, XMLParserDelegate {
             }
             return parsingToot
         }
+    }
+
+}
+
+public final class UnimplementedTootSniffer: TootSnifferProtocol {
+
+    public init() {}
+
+    public func sniff(url: URL) async throws -> Toot {
+        fatalError("Unimplemented")
     }
 
 }
