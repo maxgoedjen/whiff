@@ -19,7 +19,7 @@ public final class TootSniffer: TootSnifferProtocol {
         let response = rawResponse as! HTTPURLResponse
         guard response.allHeaderFields["Server"] as? String == "Mastodon" else { throw NotAMastadonPost() }
         let parser = try await TootParser(url: url)
-        print(String(data: try JSONEncoder().encode(try parser.toot), encoding: .utf8)!)
+//        print(String(data: try JSONEncoder().encode(try parser.toot), encoding: .utf8)!)
         return try parser.toot
     }
 
@@ -113,7 +113,8 @@ private final class TootParser: NSObject, XMLParserDelegate {
 
 public final class UnimplementedTootSniffer: TootSnifferProtocol {
 
-    public init() {}
+    public init() {
+    }
 
     public func sniff(url: URL) async throws -> Toot {
         fatalError("Unimplemented")

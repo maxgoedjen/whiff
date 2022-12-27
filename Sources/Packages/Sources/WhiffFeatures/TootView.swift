@@ -4,25 +4,32 @@ import TootSniffer
 struct TootView: View {
 
     let toot: Toot
-    let backgroundColor = Color.black
-    let textColor = Color.white
+    let appearance: Appearance
+    let showDate: Bool
+
+    init(toot: Toot, appearance: Appearance = .init(), showDate: Bool = true) {
+        self.toot = toot
+        self.appearance = appearance
+        self.showDate = showDate
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             TooterView(
                 tooter: toot.tooter,
-                backgroundColor: backgroundColor,
-                textColor: textColor
+                appearance: appearance
             )
             Text(toot.body)
-                .foregroundColor(textColor)
+                .foregroundColor(appearance.textColor)
                 .font(.system(.title3, design: .rounded, weight: .regular))
-            Text(toot.date.formatted())
-                .foregroundColor(textColor)
-                .font(.system(.footnote, design: .rounded, weight: .regular))
+            if showDate {
+                Text(toot.date.formatted())
+                    .foregroundColor(appearance.textColor)
+                    .font(.system(.footnote, design: .rounded, weight: .regular))
+            }
         }
         .padding()
-        .background(backgroundColor)
+        .background(appearance.backgroundColor)
         .cornerRadius(15)
     }
 
@@ -31,8 +38,7 @@ struct TootView: View {
 struct TooterView: View {
 
     let tooter: Tooter
-    let backgroundColor: Color
-    let textColor: Color
+    let appearance: Appearance
 
     var body: some View {
         HStack(spacing: 10) {
@@ -52,10 +58,10 @@ struct TooterView: View {
             .mask(Circle())
             VStack(alignment: .leading) {
                 Text(tooter.name)
-                    .foregroundColor(textColor)
+                    .foregroundColor(appearance.textColor)
                     .font(.system(.title2, design: .rounded, weight: .bold))
                 Text(tooter.username)
-                    .foregroundColor(textColor)
+                    .foregroundColor(appearance.textColor)
                     .font(.system(.title3, design: .rounded, weight: .regular))
             }
         }
@@ -63,3 +69,14 @@ struct TooterView: View {
 
 }
 
+struct Appearance: Equatable {
+
+    let textColor: Color
+    let backgroundColor: Color
+
+    internal init(textColor: Color = .white, backgroundColor: Color = .black) {
+        self.textColor = textColor
+        self.backgroundColor = backgroundColor
+    }
+
+}
