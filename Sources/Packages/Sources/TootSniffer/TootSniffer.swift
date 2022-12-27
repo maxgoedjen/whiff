@@ -12,100 +12,50 @@ public final class TootSniffer: TootSnifferProtocol {
     }
 
     public func sniff(url: URL) async throws -> Toot {
+        let apiURL = try await constructMastodonAPIURL(url: url)
+        return try await loadToot(url: apiURL)
+//        let parser = try await TootParser(url: url)
+//        print(String(data: try JSONEncoder().encode(try parser.toot), encoding: .utf8)!)
+//        return try parser.toot
+    }
+
+    func constructMastodonAPIURL(url: URL) async throws -> URL {
         var headRequest = URLRequest(url: url)
         headRequest.httpMethod = "HEAD"
         let (_, rawResponse) = try await URLSession.shared.data(for: headRequest)
         let response = rawResponse as! HTTPURLResponse
         guard response.allHeaderFields["Server"] as? String == "Mastodon" else { throw NotAMastadonPost() }
-        let parser = try await TootParser(url: url)
-//        print(String(data: try JSONEncoder().encode(try parser.toot), encoding: .utf8)!)
-        return try parser.toot
+        guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
+              let id = apiLink.path.split(separator: "/").last
+        else { throw NoLinkParameter() }
+        apiLink.path = "/api/v1/statuses/\(id)"
+        guard let final = apiLink.url else { throw NoLinkParameter() }
+        return final
     }
 
-}
-
-private final class TootParser: NSObject, XMLParserDelegate {
-
-    var parsingToot: Toot = .init(
-        source: URL(string: "https://example.com")!,
-        date: .distantPast,
-        tooter: Tooter(
-            image: URL(string: "https://example.com")!,
-            name: "",
-            username: ""
-        ),
-        body: "",
-        images: []
-    )
-
-    var error: (any Error)?
-
-    init(url: URL) async throws {
-        super.init()
-        parsingToot.source = url
+    func loadToot(url: URL) async throws -> Toot {
         let (data, _) = try await URLSession.shared.data(from: url)
-        // Is it ideal to use an XMLParser for this?
-        // No, but it's not worth pulling in a dep for it, and we know mastodon pages will be
-        // reasonably well-formed. ¯\_(ツ)_/¯
-        let parser = XMLParser(data: data)
-        parser.delegate = self
-        parser.parse()
-    }
-
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
-        do {
-            guard elementName == "meta" else { return }
-            guard let content = attributeDict["content"] else { return }
-            switch attributeDict["property"] {
-            case "og:title":
-                let regex = Regex {
-                    Capture {
-                        OneOrMore {
-                            .any
-                        }
-                    }
-                    " "
-                    "("
-                    Capture {
-                        OneOrMore {
-                            .any
-                        }
-                    }
-                    ")"
-                }
-                guard let matches = try regex.firstMatch(in: content) else { throw UnableToParseAuthorName() }
-                parsingToot.tooter.name = String(matches.output.1)
-                parsingToot.tooter.username = String(matches.output.2)
-            case "og:published_time":
-                guard let date = ISO8601DateFormatter().date(from: content) else { throw UnableToParseDate() }
-                parsingToot.date = date
-            case "og:description":
-                parsingToot.body = content
-            case "og:image":
-                guard let url = URL(string: content) else { throw UnableToParseAuthorImage() }
-                parsingToot.tooter.image = url
-            default:
-                return
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            let string = try container.decode(String.self)
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withFractionalSeconds]
+            guard let date = formatter.date(from: string) else {
+                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to parse date")
             }
-        } catch {
-            self.error = error
-            parser.abortParsing()
+            return date
         }
-    }
-
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        if elementName == "head" {
-            parser.abortParsing()
-        }
-    }
-
-    var toot: Toot {
-        get throws {
-            if let error {
-                throw error
-            }
-            return parsingToot
-        }
+        let raw = try decoder.decode(Toot.self, from: data)
+        // I know,
+        // dO Not Use reGex TO ParSE hTMl
+        // but I'm not going to actually parse this HTML, so.
+        let regex = #/<[^>]+>/#
+        let strippedContent = raw.content.replacing(regex, with: "")
+        var cleaned = raw
+        cleaned.content = strippedContent
+        return cleaned
     }
 
 }
@@ -122,6 +72,9 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
 }
 
 struct NotAMastadonPost: Error {
+}
+
+struct NoLinkParameter: Error {
 }
 
 struct UnableToParseAuthorName: Error {

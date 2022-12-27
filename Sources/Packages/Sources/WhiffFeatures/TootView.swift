@@ -16,14 +16,14 @@ struct TootView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             TooterView(
-                tooter: toot.tooter,
+                tooter: toot.account,
                 appearance: appearance
             )
-            Text(toot.body)
+            Text(toot.content)
                 .foregroundColor(appearance.textColor)
                 .font(.system(.title3, design: .rounded, weight: .regular))
             if showDate {
-                Text(toot.date.formatted())
+                Text(toot.createdAt.formatted())
                     .foregroundColor(appearance.textColor)
                     .font(.system(.footnote, design: .rounded, weight: .regular))
             }
@@ -42,7 +42,7 @@ struct TooterView: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            AsyncImage(url: tooter.image) { image in
+            AsyncImage(url: tooter.avatar) { image in
                 image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
@@ -57,7 +57,7 @@ struct TooterView: View {
             .frame(width: 60, height: 60)
             .mask(Circle())
             VStack(alignment: .leading) {
-                Text(tooter.name)
+                Text(tooter.displayName)
                     .foregroundColor(appearance.textColor)
                     .font(.system(.title2, design: .rounded, weight: .bold))
                 Text(tooter.username)
