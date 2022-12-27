@@ -25,6 +25,25 @@ struct TootView: View {
             Text(toot.content)
                 .foregroundColor(appearance.textColor)
                 .font(.system(.title3, design: .rounded, weight: .regular))
+            HStack {
+                // FIXME: GRID/FAN?
+                ForEach(toot.mediaAttachments) { attachment in
+                    if let image = images[attachment.url] {
+                        image
+                            .resizable()
+                            .aspectRatio(attachment.size, contentMode: .fit)
+                    } else {
+                        Rectangle()
+                            .foregroundColor(.gray)
+                            .overlay {
+                                ProgressView()
+                                    .progressViewStyle(.circular)
+                            }
+                    }
+
+                }
+
+            }
             if showDate {
                 Text(toot.createdAt.formatted())
                     .foregroundColor(appearance.textColor)
