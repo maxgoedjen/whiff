@@ -40,8 +40,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             switch action {
             case let .requested(url):
                 return .task {
-                    .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
+                    return .settings(.load)
                 }
+                .concatenate(with: .task {
+                    .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
+                })
             case let .tootSniffCompleted(.success(toot)):
                 state.toot = toot
                 var effect = EffectTask.task { [state] in

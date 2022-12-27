@@ -2,6 +2,7 @@ import Dependencies
 import Foundation
 import TootSniffer
 import UIKit
+import ComposableArchitecture
 
 private enum TootSnifferKey: DependencyKey {
     static let liveValue: any TootSnifferProtocol = TootSniffer()
@@ -28,6 +29,20 @@ extension DependencyValues {
     public var screenScale: Double {
         get { self[ScreenScaleKey.self] }
         set { self[ScreenScaleKey.self] = newValue }
+    }
+}
+
+private enum UserDefaultsKey: DependencyKey {
+    static let liveValue: UncheckedSendable<UserDefaults> = UncheckedSendable(.standard)
+    #if DEBUG
+    static let testValue: UncheckedSendable<UserDefaults> = UncheckedSendable(.standard)
+    #endif
+}
+
+extension DependencyValues {
+    public var userDefaults: UserDefaults {
+        get { self[UserDefaultsKey.self].value }
+        set { self[UserDefaultsKey.self] = UncheckedSendable(newValue) }
     }
 }
 

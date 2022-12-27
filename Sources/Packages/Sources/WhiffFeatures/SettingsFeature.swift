@@ -5,6 +5,8 @@ import TootSniffer
 
 public struct SettingsFeature: ReducerProtocol, Sendable {
 
+    @Dependency(\.userDefaults) var userDefaults
+
     public struct State: Equatable, Sendable {
         public var textColor: Color = .white
         public var backgroundColor: Color = .black
@@ -17,9 +19,20 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
 
         public init() {
         }
+
+        fileprivate enum StorageKey: String {
+            case textColor
+            case backgroundColor
+            case showDate
+            case shareLink
+        }
+
     }
 
     public enum Action: Equatable {
+        case load
+        case save
+        case noop
         case showDateToggled(Bool)
         case shareLinkToggled(Bool)
         case textColorModified(Color)
@@ -29,8 +42,18 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
     public init() {
     }
 
+
     public func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
+        case .load:
+            loadKeyPath(keypath: \.textColor, key: .textColor, into: &state)
+            return .none
+        case .save:
+            return .task {
+                return .noop
+            }
+        case .noop:
+            return .none
         case let .showDateToggled(show):
             state.showDate = show
             return .none
