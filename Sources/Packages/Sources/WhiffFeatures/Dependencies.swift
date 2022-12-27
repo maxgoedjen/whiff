@@ -10,8 +10,8 @@ private enum TootSnifferKey: DependencyKey {
     #endif
 }
 
-extension DependencyValues {
-    public var tootSniffer: any TootSnifferProtocol {
+public extension DependencyValues {
+    var tootSniffer: any TootSnifferProtocol {
         get { self[TootSnifferKey.self] }
         set { self[TootSnifferKey.self] = newValue }
     }
@@ -24,8 +24,8 @@ private enum ScreenScaleKey: DependencyKey {
     #endif
 }
 
-extension DependencyValues {
-    public var screenScale: Double {
+public extension DependencyValues {
+    var screenScale: Double {
         get { self[ScreenScaleKey.self] }
         set { self[ScreenScaleKey.self] = newValue }
     }
@@ -38,8 +38,8 @@ private enum DismissExtensionKey: DependencyKey {
     #endif
 }
 
-extension DependencyValues {
-    public var dismissExtension: @MainActor @Sendable (Error?) -> Void {
+public extension DependencyValues {
+    var dismissExtension: @MainActor @Sendable (Error?) -> Void {
         get { self[DismissExtensionKey.self] }
         set { self[DismissExtensionKey.self] = newValue }
     }

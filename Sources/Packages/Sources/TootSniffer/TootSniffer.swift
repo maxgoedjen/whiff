@@ -74,4 +74,3 @@ struct NotAMastadonPost: LocalizedError {
 struct NoLinkParameter: LocalizedError {
     let errorDescription: String? = "Unable to parse Toot."
 }
-

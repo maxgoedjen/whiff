@@ -22,9 +22,8 @@ public struct ExtensionFeature: ReducerProtocol, Sendable {
     public init() {
     }
 
-
     public var body: some ReducerProtocol<State, Action> {
-        Reduce { state, action in
+        Reduce { _, action in
             switch action {
             case .tappedDone:
                 return .task {
@@ -42,9 +41,7 @@ public struct ExtensionFeature: ReducerProtocol, Sendable {
         }
     }
 
-
 }
-
 
 public struct ExtensionFeatureView: View {
 

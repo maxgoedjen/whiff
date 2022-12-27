@@ -21,7 +21,6 @@ public struct AppFeature: ReducerProtocol, Sendable {
     public init() {
     }
 
-
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
             switch action {
@@ -43,9 +42,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
         }
     }
 
-
 }
-
 
 public struct AppFeatureView: View {
 

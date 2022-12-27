@@ -192,6 +192,14 @@ public struct ExportFeatureView: View {
                     }
                 } else {
                     VStack {
+                        TootView(toot: .placeholder, images: [:], settings: viewStore.settings)
+                            .redacted(reason: .placeholder)
+                            .cornerRadius(15)
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(.white.opacity(0.5), lineWidth: 3)
+                            }
+                            .padding()
                         Text("Loading Toot")
                         ProgressView()
                             .progressViewStyle(.circular)

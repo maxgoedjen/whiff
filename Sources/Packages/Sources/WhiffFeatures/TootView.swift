@@ -1,6 +1,6 @@
+import BlurHashKit
 @preconcurrency import SwiftUI
 import TootSniffer
-import BlurHashKit
 
 struct TootView: View {
 
@@ -38,7 +38,7 @@ struct TootView: View {
                 }
             case .stacked:
                 content
-                VStack (spacing: 5) {
+                VStack(spacing: 5) {
                     ForEach(toot.mediaAttachments) { attachment in
                         ImageWrapperView(image: images[attachment.url], blurhash: attachment.blurhash, size: attachment.size, contentMode: .fill)
                     }
@@ -47,7 +47,7 @@ struct TootView: View {
                 HStack {
                     content
                     ZStack {
-                        ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { (idx, attachment) in
+                        ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { idx, attachment in
                             ImageWrapperView(image: images[attachment.url], blurhash: attachment.blurhash, size: attachment.size, contentMode: .fit)
                                 .frame(maxWidth: 50)
                                 .border(.white, width: 1)
@@ -145,4 +145,3 @@ struct ImageWrapperView: View {
     }
 
 }
-

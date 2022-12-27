@@ -27,7 +27,6 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
 
         }
     }
-    
 
     public enum Action: Equatable {
         case tappedDone

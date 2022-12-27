@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 public struct Toot: Equatable, Sendable, Codable {
 
     public var url: URL
@@ -48,4 +47,8 @@ public struct MediaAttachmentSize: Equatable, Sendable, Codable {
 
 }
 
+public extension Toot {
 
+    static let placeholder = Toot(url: URL(string: "https://example.com")!, createdAt: .distantPast, content: "Hello world. Hello world. Hello world. Hello world. Hello world.", account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com")!), mediaAttachments: [])
+
+}
