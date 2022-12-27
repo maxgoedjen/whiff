@@ -75,6 +75,7 @@ public struct ExportFeatureView: View {
                     }
                 }
             }
+            .padding()
             .task {
                 viewStore.send(.requested(url: URL(string: "https://mstdn.social/@lolennui/109547842480496094")!))
             }

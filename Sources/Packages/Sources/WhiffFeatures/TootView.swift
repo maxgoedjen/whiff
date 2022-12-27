@@ -17,6 +17,9 @@ struct TootView: View {
             Text(toot.body)
                 .foregroundColor(textColor)
                 .font(.system(.title3, design: .rounded, weight: .regular))
+            Text(toot.date.formatted())
+                .foregroundColor(textColor)
+                .font(.system(.footnote, design: .rounded, weight: .regular))
         }
         .padding()
         .background(backgroundColor)
@@ -38,10 +41,14 @@ struct TooterView: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
             } placeholder: {
-                ProgressView()
-                    .progressViewStyle(.circular)
+                Rectangle()
+                    .foregroundColor(.gray)
+                    .overlay {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                    }
             }
-            .frame(width: 60)
+            .frame(width: 60, height: 60)
             .mask(Circle())
             VStack(alignment: .leading) {
                 Text(tooter.name)
