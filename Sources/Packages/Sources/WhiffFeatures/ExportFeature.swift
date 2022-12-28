@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import BlurHashKit
 import Foundation
 @preconcurrency import SwiftUI
 import TootSniffer
@@ -15,7 +16,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         public var rendered: Image?
         public var showingSettings = false
         public var settings = SettingsFeature.State()
-        public var images: [URL: Image] = [:]
+        public var images: [URLKey: Image] = [:]
 
         public init() {
         }
@@ -51,12 +52,25 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 var effect = EffectTask.task { [state] in
                     try await rerenderTask(state: state)
                 }
-                for url in toot.allImages {
+//                for attachment in toot.allImages {
+//                    let url = attachment.url
+//                    guard let blurhash = attachment.blurhash else { continue }
+//                    effect = effect.concatenate(with: EffectTask.task {
+//                        return .loadImageCompleted(await TaskResult {
+//                            let key = URLKey(url, .blurhash)
+//                            guard let image = BlurHash(string: blurhash)?.image(size: attachment.size) else { throw UnableToParseImage() }
+//                            return ImageLoadResponse(key, Image(uiImage: image))
+//                        })
+//                    })
+//                }
+                for attachment in toot.allImages {
+                    let url = attachment.url
                     effect = effect.concatenate(with: EffectTask.task {
                         .loadImageCompleted(await TaskResult {
+                            let key = URLKey(url, .remote)
                             let (data, _) = try await urlSession.data(from: url)
                             guard let image = UIImage(data: data) else { throw UnableToParseImage() }
-                            return ImageLoadResponse(url, Image(uiImage: image))
+                            return ImageLoadResponse(key, Image(uiImage: image))
                         })
                     })
                 }
@@ -117,10 +131,10 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public struct ImageLoadResponse: Equatable, Sendable {
 
-        public let url: URL
+        public let url: URLKey
         public let image: Image
 
-        internal init(_ url: URL, _ image: Image) {
+        internal init(_ url: URLKey, _ image: Image) {
             self.url = url
             self.image = image
         }
@@ -138,7 +152,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 struct ScreenshotView: View, Sendable {
 
     let toot: Toot
-    let images: [URL: Image]
+    let images: [URLKey: Image]
     let settings: SettingsFeature.State
 
     var body: some View {
@@ -171,8 +185,9 @@ public struct ExportFeatureView: View {
                                 .padding()
                         }
                         Spacer()
-                        if let shareContent = viewStore.rendered {
-                            ShareLink(item: shareContent, preview: SharePreview("Rendered Toot"))
+                        if let rendered = viewStore.rendered {
+                            // FIXME: CONDITIONAL LINK SHARE
+                            ShareLink(item: rendered, message: Text(toot.url.absoluteString), preview: SharePreview("Rendered Toot"))
                                 .buttonStyle(.borderedProminent)
                         } else {
                             ShareLink(item: "")

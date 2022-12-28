@@ -8,8 +8,8 @@ public struct Toot: Equatable, Sendable, Codable {
     public var account: Tooter
     public var mediaAttachments: [MediaAttachment]
 
-    public var allImages: [URL] {
-        [account.avatar] + mediaAttachments.map(\.url)
+    public var allImages: [MediaAttachment] {
+        [MediaAttachment(id: "", url: account.avatar, meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)), blurhash: nil)] + mediaAttachments
     }
 
 }
@@ -27,7 +27,7 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
     public let id: String
     public let url: URL
     public let meta: MediaAttachmentMeta
-    public let blurhash: String
+    public let blurhash: String?
     public var size: CGSize {
         CGSize(width: meta.original.width, height: meta.original.height)
     }
@@ -45,6 +45,22 @@ public struct MediaAttachmentSize: Equatable, Sendable, Codable {
     public let width: Int
     public let height: Int
 
+}
+
+public struct URLKey: Hashable, Sendable {
+
+    public enum Kind: Hashable, Sendable {
+        case blurhash
+        case remote
+    }
+
+    let url: URL
+    let kind: Kind
+
+    public init(_ url: URL, _ kind: Kind) {
+        self.url = url
+        self.kind = kind
+    }
 }
 
 public extension Toot {

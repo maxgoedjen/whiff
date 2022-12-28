@@ -96,9 +96,8 @@ public struct SettingsFeatureView: View {
                                 .tag(style)
                         }
                     }
-//                    Toggle("Share Link with Image",
-//                           isOn: viewStore.binding(get: \.shareLink, send: SettingsFeature.Action.shareLinkToggled))
-                    // FIXME: This
+                    Toggle("Share Link with Image",
+                           isOn: viewStore.binding(get: \.shareLink, send: SettingsFeature.Action.shareLinkToggled))
                 }
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
