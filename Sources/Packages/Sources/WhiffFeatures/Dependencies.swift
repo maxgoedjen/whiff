@@ -35,7 +35,7 @@ public extension DependencyValues {
 private enum UserDefaultsKey: DependencyKey {
     static let liveValue: UncheckedSendable<UserDefaults> = UncheckedSendable(.standard)
     #if DEBUG
-    static let testValue: UncheckedSendable<UserDefaults> = UncheckedSendable(.standard)
+    static let testValue: UncheckedSendable<UserDefaults> = UncheckedSendable({ fatalError("Unimplemented") }())
     #endif
 }
 

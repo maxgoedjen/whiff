@@ -46,7 +46,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 return .task {
                     return .settings(.load)
                 }
-                .merge(with: .task {
+                .concatenate(with: .task {
                     .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
                 })
             case let .tootSniffCompleted(.success(toot)):
