@@ -28,6 +28,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
                 persistableState.textColorData = newValue.whf_data
             }
         }
+
         public var backgroundColor: Color {
             get {
                 .whf_fromData(persistableState.backgroundColorData) ?? .black
@@ -41,20 +42,21 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
             get { persistableState.showDate ?? true }
             set { persistableState.showDate = newValue }
         }
+
         public var shareLink: Bool {
             get { persistableState.shareLink ?? false }
             set { persistableState.shareLink = newValue }
         }
+
         public var roundCorners: Bool {
             get { persistableState.roundCorners ?? false }
             set { persistableState.roundCorners = newValue }
         }
+
         public var imageStyle: ImageStyle {
             get { persistableState.imageStyle ?? .grid }
             set { persistableState.imageStyle = newValue }
         }
-
-
 
         public init() {
         }
@@ -71,7 +73,6 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         }
 
     }
-
 
     public enum Action: Equatable {
         case tappedDone

@@ -1,8 +1,8 @@
+import ComposableArchitecture
 import Dependencies
 import Foundation
 import TootSniffer
 import UIKit
-import ComposableArchitecture
 
 private enum TootSnifferKey: DependencyKey {
     static let liveValue: any TootSnifferProtocol = TootSniffer()
@@ -39,8 +39,8 @@ private enum UserDefaultsKey: DependencyKey {
     #endif
 }
 
-extension DependencyValues {
-    public var userDefaults: UserDefaults {
+public extension DependencyValues {
+    var userDefaults: UserDefaults {
         get { self[UserDefaultsKey.self].value }
         set { self[UserDefaultsKey.self] = UncheckedSendable(newValue) }
     }
