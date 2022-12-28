@@ -187,8 +187,7 @@ public struct ExportFeatureView: View {
                         }
                         Spacer()
                         if let rendered = viewStore.rendered {
-                            // FIXME: CONDITIONAL LINK SHARE
-                            ShareLink(item: rendered, message: Text(toot.url.absoluteString), preview: SharePreview("Rendered Toot"))
+                            ShareLink(item: rendered, message: viewStore.settings.shareLink ? Text(toot.url.absoluteString) : nil, preview: SharePreview("Rendered Toot"))
                                 .buttonStyle(.borderedProminent)
                         } else {
                             ShareLink(item: "")
