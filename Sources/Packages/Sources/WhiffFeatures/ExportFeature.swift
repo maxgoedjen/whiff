@@ -58,7 +58,8 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                     effect = effect.merge(with: EffectTask.task {
                         return .loadImageCompleted(await TaskResult {
                             let key = URLKey(url, .blurhash)
-                            guard let image = BlurHash(string: blurhash)?.image(size: attachment.size) else { throw UnableToParseImage() }
+                            let scaled = CGSize(width: 50.0, height: attachment.size.height * (50.0 / attachment.size.width))
+                            guard let image = BlurHash(string: blurhash)?.image(size: scaled) else { throw UnableToParseImage() }
                             return ImageLoadResponse(key, Image(uiImage: image))
                         })
                     })
