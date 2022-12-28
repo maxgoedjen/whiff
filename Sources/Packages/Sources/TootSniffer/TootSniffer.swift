@@ -43,6 +43,11 @@ public final class TootSniffer: TootSnifferProtocol {
         // Gotta be unicode, not utf8
         let attributed = try NSAttributedString(data: raw.content.data(using: .unicode)!, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil)
         var cleaned = raw
+        // Mastodon API doesn't return a clean "@username@example.com" style username, so we'll look at the canonical
+        // url for the
+        if let canonicalServer = URLComponents(url: raw.url, resolvingAgainstBaseURL: true)?.host {
+            cleaned.account.username = "@\(raw.account.username)@\(canonicalServer)"
+        }
         cleaned.content = attributed.string
         // Uncomment to generate JSON for previews
 //        print(String(data: try! JSONEncoder().encode(cleaned), encoding: .utf8)!)
