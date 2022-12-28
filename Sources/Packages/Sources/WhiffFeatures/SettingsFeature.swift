@@ -197,7 +197,7 @@ public struct SettingsFeatureView: View {
 extension Color {
 
     var whf_data: Data {
-        let uiColor = UIColor(cgColor: cgColor!)
+        let uiColor = UIColor(self)
         return try! NSKeyedArchiver.archivedData(withRootObject: uiColor, requiringSecureCoding: true)
     }
 
