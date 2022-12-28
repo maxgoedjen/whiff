@@ -9,6 +9,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
 
     fileprivate struct PersistableState: Equatable, Sendable, Codable {
         var textColorData: Data?
+        var linkColorData: Data?
         var backgroundColorData: Data?
         var showDate: Bool?
         var shareLink: Bool?
@@ -35,6 +36,15 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
             }
             set {
                 persistableState.backgroundColorData = newValue.whf_data
+            }
+        }
+
+        public var linkColor: Color {
+            get {
+                .whf_fromData(persistableState.linkColorData) ?? .blue
+            }
+            set {
+                persistableState.linkColorData = newValue.whf_data
             }
         }
 
@@ -84,6 +94,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         case imageStyleChanged(ImageStyle)
         case shareLinkToggled(Bool)
         case textColorModified(Color)
+        case linkColorModified(Color)
         case backgroundColorModified(Color)
     }
 
@@ -126,6 +137,9 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         case let .textColorModified(color):
             state.textColor = color
             return .none
+        case let .linkColorModified(color):
+            state.linkColor = color
+            return .none
         case let .backgroundColorModified(color):
             state.backgroundColor = color
             return .none
@@ -159,6 +173,9 @@ public struct SettingsFeatureView: View {
                 List {
                     ColorPicker(selection: viewStore.binding(get: \.textColor, send: SettingsFeature.Action.textColorModified).animation(), supportsOpacity: false) {
                         Text("Text Color")
+                    }
+                    ColorPicker(selection: viewStore.binding(get: \.linkColor, send: SettingsFeature.Action.linkColorModified).animation(), supportsOpacity: false) {
+                        Text("Link Color")
                     }
                     ColorPicker(selection: viewStore.binding(get: \.backgroundColor, send: SettingsFeature.Action.backgroundColorModified).animation(), supportsOpacity: false) {
                         Text("Background Color")

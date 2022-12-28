@@ -12,6 +12,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
+        public var attributedContent: UncheckedSendable<AttributedString>?
         public var errorMessage: String?
         public var rendered: Image?
         public var showingSettings = false
@@ -38,7 +39,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         Scope(state: \.settings, action: /Action.settings) {
             SettingsFeature()
         }
-        Reduce { state, action in
+        Reduce(internalReduce)
+        Reduce(rerenderReduce)
+    }
+
+    public func internalReduce(into state: inout State, action: Action) -> EffectTask<Action> {
             switch action {
             case let .requested(url):
                 state.toot = nil
@@ -51,6 +56,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 })
             case let .tootSniffCompleted(.success(toot)):
                 state.toot = toot
+                do {
+                    state.attributedContent = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
+                } catch {
+                    state.attributedContent = nil
+                }
                 state.errorMessage = nil
                 for attachment in toot.allImages {
                     let url = attachment.url
@@ -61,9 +71,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                         state.images[key] = Image(uiImage: image)
                     }
                 }
-                var effect = EffectTask.task { [state] in
-                    try await rerenderTask(state: state)
-                }
+                var effect = EffectTask<Action>.none
                 for attachment in toot.allImages {
                     let url = attachment.url
                     effect = effect.merge(with: EffectTask.task {
@@ -83,14 +91,10 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 } else {
                     state.errorMessage = "Unknown Error"
                 }
-                return .task { [state] in
-                    try await rerenderTask(state: state)
-                }
+                return .none
             case let .loadImageCompleted(.success(response)):
                 state.images[response.url] = response.image
-                return .task { [state] in
-                    try await rerenderTask(state: state)
-                }
+                return .none
             case let .loadImageCompleted(.failure(error)):
                 print(error)
                 return .none
@@ -101,9 +105,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 if case .tappedDone = action {
                     state.showingSettings = false
                 }
-                return .task { [state] in
-                    try await rerenderTask(state: state)
-                }
+                return .none
             case .rerendered(.failure):
                 state.rendered = nil
                 return .none
@@ -111,8 +113,26 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 state.rendered = image
                 return .none
             }
+    }
+
+    public func rerenderReduce(into state: inout State, action: Action) -> EffectTask<Action> {
+        switch action {
+        case .tootSniffCompleted, .loadImageCompleted, .settings:
+            if let toot = state.toot {
+                do {
+                    state.attributedContent = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
+                } catch {
+                    state.attributedContent = nil
+                }
+            }
+            return .task { [state] in
+                try await rerenderTask(state: state)
+            }
+        default:
+            return .none
         }
     }
+
 
     private func rerenderTask(state: State) async throws -> Action {
         .rerendered(
@@ -120,7 +140,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 guard let toot = state.toot else {
                     throw UnableToRender()
                 }
-                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, settings: state.settings))
+                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, attributedContent: state.attributedContent?.value, images: state.images, settings: state.settings))
                 renderer.scale = screenScale
                 guard let image = renderer.uiImage else {
                     throw UnableToRender()
@@ -128,6 +148,30 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 return Image(uiImage: image)
             }
         )
+    }
+
+    func attributedContent(from toot: Toot, tint: Color) throws -> AttributedString {
+        // Gotta be unicode, not utf8
+        let nsAttributed = try NSMutableAttributedString(
+            data: toot.content.data(using: .unicode)!,
+            options: [.documentType: NSAttributedString.DocumentType.html],
+            documentAttributes: nil
+        )
+        let fullRange = NSRange(location: 0, length: nsAttributed.length)
+        nsAttributed.removeAttribute(.foregroundColor, range: fullRange)
+        nsAttributed.removeAttribute(.font, range: fullRange)
+        nsAttributed.removeAttribute(.kern, range: fullRange)
+        nsAttributed.removeAttribute(.paragraphStyle, range: fullRange)
+        nsAttributed.removeAttribute(.strokeWidth, range: fullRange)
+        nsAttributed.removeAttribute(.strokeColor, range: fullRange)
+
+        let tint = UIColor(tint)
+        nsAttributed.enumerateAttribute(.link, in: fullRange) { element, range, _ in
+            guard element != nil else { return }
+            nsAttributed.setAttributes([.foregroundColor: tint], range: range)
+        }
+
+        return AttributedString(nsAttributed)
     }
 
     public struct ImageLoadResponse: Equatable, Sendable {
@@ -150,14 +194,15 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
 }
 
-struct ScreenshotView: View, Sendable {
+struct ScreenshotView: View {
 
     let toot: Toot
+    let attributedContent: AttributedString?
     let images: [URLKey: Image]
     let settings: SettingsFeature.State
 
     var body: some View {
-        TootView(toot: toot, images: images, settings: settings)
+        TootView(toot: toot, attributedContent: attributedContent, images: images, settings: settings)
             .frame(width: 400)
     }
 
@@ -177,7 +222,7 @@ public struct ExportFeatureView: View {
                 if let toot = viewStore.toot {
                     VStack {
                         ScrollView {
-                            TootView(toot: toot, images: viewStore.images, settings: viewStore.settings)
+                            TootView(toot: toot, attributedContent: viewStore.attributedContent?.value, images: viewStore.images, settings: viewStore.settings)
                                 .cornerRadius(15)
                                 .overlay {
                                     RoundedRectangle(cornerRadius: 15)
@@ -207,7 +252,7 @@ public struct ExportFeatureView: View {
                     }
                 } else {
                     VStack {
-                        TootView(toot: .placeholder, images: [:], settings: viewStore.settings)
+                        TootView(toot: .placeholder, attributedContent: nil, images: [:], settings: viewStore.settings)
                             .redacted(reason: .placeholder)
                             .cornerRadius(15)
                             .overlay {

@@ -5,19 +5,29 @@ import TootSniffer
 struct TootView: View {
 
     let toot: Toot
+    let attributedContent: AttributedString?
     let settings: SettingsFeature.State
     let images: [URLKey: Image]
 
-    init(toot: Toot, images: [URLKey: Image], settings: SettingsFeature.State) {
+    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: Image], settings: SettingsFeature.State) {
         self.toot = toot
+        self.attributedContent = attributedContent
         self.images = images
         self.settings = settings
     }
 
     var content: some View {
-        Text(toot.content)
-            .foregroundColor(settings.textColor)
-            .font(.system(.title3, design: .rounded, weight: .regular))
+        Group {
+            if let attributedContent {
+                Text(attributedContent)
+                    .foregroundColor(settings.textColor)
+                    .font(.system(.title3, design: .rounded, weight: .regular))
+            } else {
+                Text(toot.content)
+                    .foregroundColor(settings.textColor)
+                    .font(.system(.title3, design: .rounded, weight: .regular))
+            }
+        }
 
     }
 
