@@ -211,7 +211,7 @@ public struct ExportFeatureView: View {
                     Button {
                         viewStore.send(.tappedSettings(true))
                     } label: {
-                        Image(systemName: "gear")
+                        Image(systemName: "paintbrush")
                     }
 
                 }
