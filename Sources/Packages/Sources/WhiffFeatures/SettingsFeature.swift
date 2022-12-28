@@ -18,11 +18,13 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         public init() {
         }
 
-        fileprivate enum StorageKey: String {
+        fileprivate enum StorageKey: String, CaseIterable {
             case textColor
             case backgroundColor
             case showDate
             case shareLink
+            case roundCorners
+            case imageStyle
         }
 
         public enum ImageStyle: String, Equatable, Sendable, CaseIterable, Identifiable {
@@ -42,7 +44,6 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         case tappedDone
         case load
         case save
-        case noop
         case showDateToggled(Bool)
         case roundCornersToggled(Bool)
         case imageStyleChanged(State.ImageStyle)
@@ -57,35 +58,111 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
     public func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
         case .load:
-//            loadKeyPath(keypath: \.textColor, key: .textColor, into: &state)
+            loadBool(key: .showDate, into: &state)
+            loadBool(key: .roundCorners, into: &state)
+            loadBool(key: .shareLink, into: &state)
+            loadColor(key: .textColor, into: &state)
+            loadColor(key: .backgroundColor, into: &state)
             return .none
         case .save:
-            return .task {
-                return .noop
-            }
-        case .noop:
+            saveBool(key: .showDate, from: state)
+            saveBool(key: .roundCorners, from: state)
+            saveBool(key: .shareLink, from: state)
+            saveColor(key: .textColor, from: state)
+            saveColor(key: .backgroundColor, from: state)
             return .none
         case .tappedDone:
             return .none
         case let .showDateToggled(show):
             state.showDate = show
-            return .none
+            return .task {
+                .save
+            }
         case let .roundCornersToggled(round):
             state.roundCorners = round
-            return .none
+            return .task {
+                .save
+            }
         case let .imageStyleChanged(style):
             state.imageStyle = style
-            return .none
+            return .task {
+                .save
+            }
         case let .shareLinkToggled(share):
             state.shareLink = share
-            return .none
+            return .task {
+                .save
+            }
         case let .textColorModified(color):
             state.textColor = color
-            return .none
+            return .task {
+                .save
+            }
         case let .backgroundColorModified(color):
             state.backgroundColor = color
-            return .none
+            return .task {
+                .save
+            }
         }
+    }
+
+    fileprivate func loadBool(key: State.StorageKey, into state: inout State) {
+        guard let loaded = userDefaults.value(forKey: key.rawValue) as? Bool else { return }
+        switch key {
+        case .showDate:
+            state.showDate = loaded
+        case .shareLink:
+            state.shareLink = loaded
+        case .roundCorners:
+            state.roundCorners = loaded
+        default:
+            break
+        }
+    }
+
+    fileprivate func loadColor(key: State.StorageKey, into state: inout State) {
+        guard let data = userDefaults.data(forKey: key.rawValue),
+              let uiColor = try? NSKeyedUnarchiver(forReadingFrom: data).decodeObject(of: UIColor.self, forKey: "color")
+        else { return }
+        let loaded = Color(uiColor: uiColor)
+        switch key {
+        case .textColor:
+            state.textColor = loaded
+        case .backgroundColor:
+            state.backgroundColor = loaded
+        default:
+            break
+        }
+    }
+
+    fileprivate func saveBool(key: State.StorageKey, from state: State) {
+        switch key {
+        case .showDate:
+            userDefaults.set(state.showDate, forKey: key.rawValue)
+        case .shareLink:
+            userDefaults.set(state.shareLink, forKey: key.rawValue)
+        case .roundCorners:
+            userDefaults.set(state.roundCorners, forKey: key.rawValue)
+        default:
+            break
+        }
+    }
+
+    fileprivate func saveColor(key: State.StorageKey, from state: State) {
+        let color: Color
+        switch key {
+        case .textColor:
+            color = state.textColor
+        case .backgroundColor:
+            color = state.backgroundColor
+        default:
+            return
+        }
+        guard let cgColor = color.cgColor else { return }
+        let uiColor = UIColor(cgColor: cgColor)
+        let archiver = NSKeyedArchiver(requiringSecureCoding: true)
+        archiver.encode(uiColor, forKey: "color")
+        userDefaults.set(archiver.encodedData, forKey: key.rawValue)
     }
 
 }
