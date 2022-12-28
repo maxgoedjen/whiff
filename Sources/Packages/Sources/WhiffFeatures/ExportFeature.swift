@@ -49,20 +49,17 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             case let .tootSniffCompleted(.success(toot)):
                 state.toot = toot
                 state.errorMessage = nil
-                var effect = EffectTask.task { [state] in
-                    try await rerenderTask(state: state)
-                }
                 for attachment in toot.allImages {
                     let url = attachment.url
-                    guard let blurhash = attachment.blurhash else { continue }
-                    effect = effect.merge(with: EffectTask.task {
-                        return .loadImageCompleted(await TaskResult {
-                            let key = URLKey(url, .blurhash)
-                            let scaled = CGSize(width: 50.0, height: attachment.size.height * (50.0 / attachment.size.width))
-                            guard let image = BlurHash(string: blurhash)?.image(size: scaled) else { throw UnableToParseImage() }
-                            return ImageLoadResponse(key, Image(uiImage: image))
-                        })
-                    })
+                    if let blurhash = attachment.blurhash {
+                        let key = URLKey(url, .blurhash)
+                        let scaled = CGSize(width: 10.0, height: attachment.size.height * (10.0 / attachment.size.width))
+                        guard let image = BlurHash(string: blurhash)?.image(size: scaled) else { continue }
+                        state.images[key] = Image(uiImage: image)
+                    }
+                }
+                var effect = EffectTask.task { [state] in
+                    try await rerenderTask(state: state)
                 }
                 for attachment in toot.allImages {
                     let url = attachment.url
