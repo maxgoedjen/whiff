@@ -222,7 +222,7 @@ public struct ExportFeatureView: View {
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button {
                         viewStore.send(.tappedSettings(true))
                     } label: {

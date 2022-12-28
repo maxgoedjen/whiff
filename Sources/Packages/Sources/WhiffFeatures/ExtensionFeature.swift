@@ -56,7 +56,7 @@ public struct ExtensionFeatureView: View {
             NavigationView {
                 ExportFeatureView(store: store.scope(state: \.exportState, action: ExtensionFeature.Action.export))
                     .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
+                        ToolbarItem(placement: .confirmationAction) {
                             Button("Done") {
                                 viewStore.send(.tappedDone)
                             }

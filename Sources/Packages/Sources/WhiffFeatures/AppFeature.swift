@@ -68,7 +68,7 @@ public struct AppFeatureView: View {
                 NavigationView {
                     ExportFeatureView(store: store.scope(state: \.exportState, action: AppFeature.Action.export))
                         .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
+                            ToolbarItem(placement: .confirmationAction) {
                                 Button("Done") {
                                     viewStore.send(.setShowing(false))
                                 }
