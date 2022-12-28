@@ -17,11 +17,6 @@ public final class TootSniffer: TootSnifferProtocol {
     }
 
     func constructMastodonAPIURL(url: URL) async throws -> URL {
-        var headRequest = URLRequest(url: url)
-        headRequest.httpMethod = "HEAD"
-        let (_, rawResponse) = try await URLSession.shared.data(for: headRequest)
-        let response = rawResponse as! HTTPURLResponse
-        guard response.allHeaderFields["Server"] as? String == "Mastodon" else { throw NotAMastadonPost() }
         guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let id = apiLink.path.split(separator: "/").last
         else { throw NoLinkParameter() }
