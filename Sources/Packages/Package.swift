@@ -19,11 +19,11 @@ let package = Package(
             from: Version(stringLiteral: "0.47.2")
         ),
         .package(
-            url: "https://github.com/pointfreeco/xctest-dynamic-overlay.git",
-            from: Version(stringLiteral: "0.4.1")
+            url: "https://github.com/JanRajtr/blurhash.git",
+            branch: "feature/spm-support"
         ),
         .package(
-            url: "https://github.com/nicklockwood/SwiftFormat",
+            url: "https://github.com/nicklockwood/SwiftFormat.git",
             from: "0.50.4"
         ),
     ],
@@ -32,6 +32,7 @@ let package = Package(
                        dependencies: [
                         "TootSniffer",
                         .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
+                        .product(name: "BlurHashKit", package: "blurhash"),
                        ]),
         .whiffTargets(name: "TootSniffer",
                        dependencies: []),

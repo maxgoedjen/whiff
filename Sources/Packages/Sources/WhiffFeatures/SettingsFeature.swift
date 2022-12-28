@@ -12,10 +12,8 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         public var backgroundColor: Color = .black
         public var showDate: Bool = true
         public var shareLink: Bool = false
-
-        public var appearance: Appearance {
-            Appearance(textColor: textColor, backgroundColor: backgroundColor)
-        }
+        public var roundCorners: Bool = false
+        public var imageStyle: ImageStyle = .grid
 
         public init() {
         }
@@ -27,13 +25,27 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
             case shareLink
         }
 
+        public enum ImageStyle: String, Equatable, Sendable, CaseIterable, Identifiable {
+            case grid = "Grid"
+            case stacked = "Stacked"
+            case fan = "Fan"
+
+            public var id: String {
+                rawValue
+            }
+
+        }
+
     }
 
     public enum Action: Equatable {
+        case tappedDone
         case load
         case save
         case noop
         case showDateToggled(Bool)
+        case roundCornersToggled(Bool)
+        case imageStyleChanged(State.ImageStyle)
         case shareLinkToggled(Bool)
         case textColorModified(Color)
         case backgroundColorModified(Color)
@@ -42,11 +54,10 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
     public init() {
     }
 
-
     public func reduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
         case .load:
-            loadKeyPath(keypath: \.textColor, key: .textColor, into: &state)
+//            loadKeyPath(keypath: \.textColor, key: .textColor, into: &state)
             return .none
         case .save:
             return .task {
@@ -54,8 +65,16 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
             }
         case .noop:
             return .none
+        case .tappedDone:
+            return .none
         case let .showDateToggled(show):
             state.showDate = show
+            return .none
+        case let .roundCornersToggled(round):
+            state.roundCorners = round
+            return .none
+        case let .imageStyleChanged(style):
+            state.imageStyle = style
             return .none
         case let .shareLinkToggled(share):
             state.shareLink = share
@@ -81,20 +100,35 @@ public struct SettingsFeatureView: View {
 
     public var body: some View {
         WithViewStore(store) { viewStore in
-            VStack {
-                ColorPicker(selection: viewStore.binding(get: \.textColor, send: SettingsFeature.Action.textColorModified).animation(), supportsOpacity: false) {
-                    Text("Text Color")
+            NavigationView {
+                List {
+                    ColorPicker(selection: viewStore.binding(get: \.textColor, send: SettingsFeature.Action.textColorModified).animation(), supportsOpacity: false) {
+                        Text("Text Color")
+                    }
+                    ColorPicker(selection: viewStore.binding(get: \.backgroundColor, send: SettingsFeature.Action.backgroundColorModified).animation(), supportsOpacity: false) {
+                        Text("Background Color")
+                    }
+                    Toggle("Show Date",
+                           isOn: viewStore.binding(get: \.showDate, send: SettingsFeature.Action.showDateToggled).animation())
+                    Toggle("Round Corners on Export",
+                           isOn: viewStore.binding(get: \.roundCorners, send: SettingsFeature.Action.roundCornersToggled).animation())
+                    Picker("Image Display", selection: viewStore.binding(get: \.imageStyle, send: SettingsFeature.Action.imageStyleChanged).animation()) {
+                        ForEach(SettingsFeature.State.ImageStyle.allCases) { style in
+                            Text(style.rawValue)
+                                .tag(style)
+                        }
+                    }
+                    Toggle("Share Link with Image",
+                           isOn: viewStore.binding(get: \.shareLink, send: SettingsFeature.Action.shareLinkToggled))
                 }
-                ColorPicker(selection: viewStore.binding(get: \.backgroundColor, send: SettingsFeature.Action.backgroundColorModified).animation(), supportsOpacity: false) {
-                    Text("Background Color")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Done") {
+                            viewStore.send(.tappedDone)
+                        }
+                    }
                 }
-                Toggle("Show Date",
-                       isOn: viewStore.binding(get: \.showDate, send: SettingsFeature.Action.showDateToggled))
-                Toggle("Share Link with Image",
-                       isOn: viewStore.binding(get: \.shareLink, send: SettingsFeature.Action.shareLinkToggled))
-                .hidden() // FIXME: This
             }
-            .padding()
         }
 
     }

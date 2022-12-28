@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import BlurHashKit
 import Foundation
 @preconcurrency import SwiftUI
 import TootSniffer
@@ -11,10 +12,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
+        public var errorMessage: String?
         public var rendered: Image?
         public var showingSettings = false
         public var settings = SettingsFeature.State()
-        public var images: [URL: Image] = [:]
+        public var images: [URLKey: Image] = [:]
 
         public init() {
         }
@@ -39,6 +41,8 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         Reduce { state, action in
             switch action {
             case let .requested(url):
+                state.toot = nil
+                state.images = [:]
                 return .task {
                     return .settings(.load)
                 }
@@ -47,22 +51,38 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 })
             case let .tootSniffCompleted(.success(toot)):
                 state.toot = toot
+                state.errorMessage = nil
+                for attachment in toot.allImages {
+                    let url = attachment.url
+                    if let blurhash = attachment.blurhash {
+                        let key = URLKey(url, .blurhash)
+                        let scaled = CGSize(width: 10.0, height: attachment.size.height * (10.0 / attachment.size.width))
+                        guard let image = BlurHash(string: blurhash)?.image(size: scaled) else { continue }
+                        state.images[key] = Image(uiImage: image)
+                    }
+                }
                 var effect = EffectTask.task { [state] in
                     try await rerenderTask(state: state)
                 }
-                for url in toot.allImages {
-                    effect = effect.concatenate(with: EffectTask.task {
+                for attachment in toot.allImages {
+                    let url = attachment.url
+                    effect = effect.merge(with: EffectTask.task {
                         .loadImageCompleted(await TaskResult {
+                            let key = URLKey(url, .remote)
                             let (data, _) = try await urlSession.data(from: url)
                             guard let image = UIImage(data: data) else { throw UnableToParseImage() }
-                            return ImageLoadResponse(url, Image(uiImage: image))
+                            return ImageLoadResponse(key, Image(uiImage: image))
                         })
                     })
                 }
                 return effect
             case let .tootSniffCompleted(.failure(error)):
                 state.toot = nil
-                print(error)
+                if let localized = error as? LocalizedError {
+                    state.errorMessage = localized.errorDescription
+                } else {
+                    state.errorMessage = "Unknown Error"
+                }
                 return .task { [state] in
                     try await rerenderTask(state: state)
                 }
@@ -77,7 +97,10 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             case let .tappedSettings(showing):
                 state.showingSettings = showing
                 return .none
-            case .settings:
+            case let .settings(action):
+                if case .tappedDone = action {
+                    state.showingSettings = false
+                }
                 return .task { [state] in
                     try await rerenderTask(state: state)
                 }
@@ -97,7 +120,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 guard let toot = state.toot else {
                     throw UnableToRender()
                 }
-                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, appearance: state.settings.appearance, showDate: state.settings.showDate))
+                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, images: state.images, settings: state.settings))
                 renderer.scale = screenScale
                 guard let image = renderer.uiImage else {
                     throw UnableToRender()
@@ -109,10 +132,10 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public struct ImageLoadResponse: Equatable, Sendable {
 
-        public let url: URL
+        public let url: URLKey
         public let image: Image
 
-        internal init(_ url: URL, _ image: Image) {
+        internal init(_ url: URLKey, _ image: Image) {
             self.url = url
             self.image = image
         }
@@ -130,12 +153,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 struct ScreenshotView: View, Sendable {
 
     let toot: Toot
-    let images: [URL: Image]
-    let appearance: Appearance
-    let showDate: Bool
+    let images: [URLKey: Image]
+    let settings: SettingsFeature.State
 
     var body: some View {
-        TootView(toot: toot, images: images, appearance: appearance, showDate: showDate)
+        TootView(toot: toot, images: images, settings: settings)
             .frame(width: 400)
     }
 
@@ -154,29 +176,63 @@ public struct ExportFeatureView: View {
             Group {
                 if let toot = viewStore.toot {
                     VStack {
-                        TootView(toot: toot, images: viewStore.images, appearance: viewStore.settings.appearance, showDate: viewStore.settings.showDate)
+                        ScrollView {
+                            TootView(toot: toot, images: viewStore.images, settings: viewStore.settings)
+                                .cornerRadius(15)
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .stroke(.white.opacity(0.5), lineWidth: 3)
+                                }
+                                .padding()
+                        }
                         Spacer()
-                        if let shareContent = viewStore.rendered {
-                            ShareLink(item: shareContent, preview: SharePreview("Rendered Toot"))
-                            .buttonStyle(.borderedProminent)
+                        if let rendered = viewStore.rendered {
+                            // FIXME: CONDITIONAL LINK SHARE
+                            ShareLink(item: rendered, message: Text(toot.url.absoluteString), preview: SharePreview("Rendered Toot"))
+                                .buttonStyle(.borderedProminent)
                         } else {
                             ShareLink(item: "")
                                 .buttonStyle(.borderedProminent)
                                 .disabled(true)
                         }
-                    }.sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {
+                    }
+                    .sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {
                         SettingsFeatureView(store: store.scope(state: \.settings, action: ExportFeature.Action.settings))
                             .presentationDetents([.medium])
                     }
+                } else if let error = viewStore.errorMessage {
+                    VStack {
+                        Text("Error")
+                            .font(.headline)
+                        Text(error)
+                    }
                 } else {
                     VStack {
+                        TootView(toot: .placeholder, images: [:], settings: viewStore.settings)
+                            .redacted(reason: .placeholder)
+                            .cornerRadius(15)
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(.white.opacity(0.5), lineWidth: 3)
+                            }
+                            .padding()
                         Text("Loading Toot")
                         ProgressView()
                             .progressViewStyle(.circular)
                     }
                 }
             }
-            .padding()
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        viewStore.send(.tappedSettings(true))
+                    } label: {
+                        Image(systemName: "paintbrush")
+                    }
+
+                }
+            }
+
         }
 
     }

@@ -17,11 +17,6 @@ public final class TootSniffer: TootSnifferProtocol {
     }
 
     func constructMastodonAPIURL(url: URL) async throws -> URL {
-        var headRequest = URLRequest(url: url)
-        headRequest.httpMethod = "HEAD"
-        let (_, rawResponse) = try await URLSession.shared.data(for: headRequest)
-        let response = rawResponse as! HTTPURLResponse
-        guard response.allHeaderFields["Server"] as? String == "Mastodon" else { throw NotAMastadonPost() }
         guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let id = apiLink.path.split(separator: "/").last
         else { throw NoLinkParameter() }
@@ -45,13 +40,10 @@ public final class TootSniffer: TootSnifferProtocol {
             return date
         }
         let raw = try decoder.decode(Toot.self, from: data)
-        // I know,
-        // dO Not Use reGex TO ParSE hTMl
-        // but I'm not going to actually parse this HTML, so.
-        let regex = #/<[^>]+>/#
-        let strippedContent = raw.content.replacing(regex, with: "")
+        // Gotta be unicode, not utf8
+        let attributed = try NSAttributedString(data: raw.content.data(using: .unicode)!, options: [.documentType: NSAttributedString.DocumentType.html], documentAttributes: nil)
         var cleaned = raw
-        cleaned.content = strippedContent
+        cleaned.content = attributed.string
         // Uncomment to generate JSON for previews
 //        print(String(data: try! JSONEncoder().encode(cleaned), encoding: .utf8)!)
         return cleaned
@@ -70,17 +62,10 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
 
 }
 
-struct NotAMastadonPost: Error {
+struct NotAMastadonPost: LocalizedError {
+    let errorDescription: String? = "This isn't a Mastodon Post."
 }
 
-struct NoLinkParameter: Error {
-}
-
-struct UnableToParseAuthorName: Error {
-}
-
-struct UnableToParseAuthorImage: Error {
-}
-
-struct UnableToParseDate: Error {
+struct NoLinkParameter: LocalizedError {
+    let errorDescription: String? = "Unable to parse Toot."
 }
