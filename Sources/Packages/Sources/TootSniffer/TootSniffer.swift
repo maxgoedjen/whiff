@@ -39,8 +39,12 @@ public final class TootSniffer: TootSnifferProtocol {
             }
             return date
         }
-        let raw = try decoder.decode(Toot.self, from: data)
-        return try cleanToot(raw)
+        do {
+            let raw = try decoder.decode(Toot.self, from: data)
+            return try cleanToot(raw)
+        } catch {
+            throw NotAMastadonPost()
+        }
     }
 
     func cleanToot(_ toot: Toot) throws -> Toot {

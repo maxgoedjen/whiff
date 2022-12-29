@@ -86,8 +86,8 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             return effect
         case let .tootSniffCompleted(.failure(error)):
             state.toot = nil
-            if let localized = error as? LocalizedError {
-                state.errorMessage = localized.errorDescription
+            if let localized = error as? LocalizedError, let message = localized.errorDescription {
+                state.errorMessage = message
             } else {
                 state.errorMessage = "Unknown Error"
             }
