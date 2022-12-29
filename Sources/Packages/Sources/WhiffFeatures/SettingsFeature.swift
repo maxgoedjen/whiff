@@ -19,7 +19,11 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
 
     public struct State: Equatable, Sendable {
 
-        fileprivate var persistableState = PersistableState()
+        internal var persistableState = PersistableState()
+
+        internal init(_ persistableState: PersistableState) {
+            self.persistableState = persistableState
+        }
 
         public var textColor: Color {
             get {
