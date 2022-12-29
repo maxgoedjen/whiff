@@ -171,6 +171,8 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             nsAttributed.setAttributes([.foregroundColor: tint], range: range)
         }
 
+        // Uncomment to generate data for previews
+//        print(try! NSKeyedArchiver.archivedData(withRootObject: nsAttributed, requiringSecureCoding: true))
         return AttributedString(nsAttributed)
     }
 

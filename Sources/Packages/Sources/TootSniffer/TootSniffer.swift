@@ -50,8 +50,8 @@ public final class TootSniffer: TootSnifferProtocol {
         if let canonicalServer = URLComponents(url: toot.url, resolvingAgainstBaseURL: true)?.host {
             cleaned.account.username = "@\(toot.account.username)@\(canonicalServer)"
         }
-        // Uncomment to generate JSON for previews
-//        print(String(data: try! JSONEncoder().encode(cleaned), encoding: .utf8)!)
+        // Uncomment to generate data for previews
+//        print(try! JSONEncoder().encode(cleaned).base64EncodedString())
         return cleaned
     }
 
