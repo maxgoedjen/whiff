@@ -11,6 +11,10 @@ jobs:
       run: sudo xcrun xcode-select -s /Applications/Xcode_14.2.app
     - name: Test
       run: |
-            pushd Sources/Packages
-            swift test
+            pushd Sources
+            simruntime=$(xcrun simctl list runtimes -j | jq '.runtimes[0].identifier')
+            prefix=".devices."
+            suffix="[0].udid"
+            deviceid=$(xcrun simctl list -j | jq -r "$prefix$simruntime$suffix")
+            xcrun xcodebuild test -scheme Whiff -sdk iphonesimulator -destination "platform=iOS Simulator,id=$deviceid"
             popd
