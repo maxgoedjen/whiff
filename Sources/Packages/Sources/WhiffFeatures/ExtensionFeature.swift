@@ -53,7 +53,7 @@ public struct ExtensionFeatureView: View {
 
     public var body: some View {
         WithViewStore(store) { viewStore in
-            NavigationView {
+            NavigationStack {
                 ExportFeatureView(store: store.scope(state: \.exportState, action: ExtensionFeature.Action.export))
                     .toolbar {
                         ToolbarItem(placement: .confirmationAction) {

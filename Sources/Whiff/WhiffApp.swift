@@ -8,7 +8,7 @@ struct WhiffApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
+            NavigationStack {
                 AppFeatureView(store: Store(initialState: .init(), reducer: AppFeature()))
             }
         }

@@ -65,7 +65,7 @@ public struct AppFeatureView: View {
                 }
             }
             .sheet(isPresented: viewStore.binding(get: \.showing, send: AppFeature.Action.setShowing)) {
-                NavigationView {
+                NavigationStack {
                     ExportFeatureView(store: store.scope(state: \.exportState, action: AppFeature.Action.export))
                         .toolbar {
                             ToolbarItem(placement: .confirmationAction) {
