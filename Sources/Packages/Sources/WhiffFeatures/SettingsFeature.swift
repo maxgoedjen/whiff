@@ -5,7 +5,7 @@ import TootSniffer
 
 public struct SettingsFeature: ReducerProtocol, Sendable {
 
-    @Dependency(\.userDefaults) var userDefaults
+    @Dependency(\.keyValueStorage) var keyValueStorage
 
     fileprivate struct PersistableState: Equatable, Sendable, Codable {
         var textColorData: Data?
@@ -109,13 +109,13 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
     public func internalReduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
         case .load:
-            guard let data = userDefaults.data(forKey: "settings") else { return .none }
+            guard let data = keyValueStorage["settings"] else { return .none }
             guard let loaded = try? JSONDecoder().decode(PersistableState.self, from: data) else { return .none }
             state.persistableState = loaded
             return .none
         case .save:
             guard let encoded = try? JSONEncoder().encode(state.persistableState) else { return .none }
-            userDefaults.set(encoded, forKey: "settings")
+            keyValueStorage["settings"] = encoded
             return .none
         case .reset:
             state.persistableState = PersistableState()

@@ -32,17 +32,17 @@ public extension DependencyValues {
     }
 }
 
-private enum UserDefaultsKey: DependencyKey {
-    static let liveValue: UncheckedSendable<UserDefaults> = UncheckedSendable(.standard)
+private enum KeyValueStorageKey: DependencyKey {
+    static let liveValue: KeyValueStorage = UserDefaultsStorage(defaults: .standard)
     #if DEBUG
-    static let testValue: UncheckedSendable<UserDefaults> = UncheckedSendable({ fatalError("Unimplemented") }())
+    static let testValue: KeyValueStorage = { fatalError("Unimplemented") }()
     #endif
 }
 
 public extension DependencyValues {
-    var userDefaults: UserDefaults {
-        get { self[UserDefaultsKey.self].value }
-        set { self[UserDefaultsKey.self] = UncheckedSendable(newValue) }
+    var keyValueStorage: KeyValueStorage {
+        get { self[KeyValueStorageKey.self] }
+        set { self[KeyValueStorageKey.self] = newValue }
     }
 }
 
