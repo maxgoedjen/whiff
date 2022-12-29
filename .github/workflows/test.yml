@@ -1,0 +1,16 @@
+name: Test
+
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: macOS-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set Environment
+      run: sudo xcrun xcode-select -s /Applications/Xcode_14.2.app
+    - name: Test
+      run: |
+            pushd Sources/Packages
+            swift test
+            popd
