@@ -12,9 +12,9 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         var linkColorData: Data?
         var backgroundColorData: Data?
         var showDate: Bool?
-        var shareLink: Bool?
         var roundCorners: Bool?
         var imageStyle: ImageStyle?
+        var linkStyle: LinkStyle?
     }
 
     public struct State: Equatable, Sendable {
@@ -53,14 +53,14 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
             set { persistableState.showDate = newValue }
         }
 
-        public var shareLink: Bool {
-            get { persistableState.shareLink ?? false }
-            set { persistableState.shareLink = newValue }
-        }
-
         public var roundCorners: Bool {
             get { persistableState.roundCorners ?? false }
             set { persistableState.roundCorners = newValue }
+        }
+
+        public var linkStyle: LinkStyle {
+            get { persistableState.linkStyle ?? .inImage }
+            set { persistableState.linkStyle = newValue }
         }
 
         public var imageStyle: ImageStyle {
@@ -84,6 +84,17 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
 
     }
 
+    public enum LinkStyle: String, Equatable, Sendable, Codable, CaseIterable, Identifiable {
+        case none = "None"
+        case inImage = "In Image"
+        case afterImage = "After Image"
+
+        public var id: String {
+            rawValue
+        }
+
+    }
+
     public enum Action: Equatable {
         case tappedDone
         case load
@@ -92,7 +103,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         case showDateToggled(Bool)
         case roundCornersToggled(Bool)
         case imageStyleChanged(ImageStyle)
-        case shareLinkToggled(Bool)
+        case linkStyleChanged(LinkStyle)
         case textColorModified(Color)
         case linkColorModified(Color)
         case backgroundColorModified(Color)
@@ -131,8 +142,8 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         case let .imageStyleChanged(style):
             state.imageStyle = style
             return .none
-        case let .shareLinkToggled(share):
-            state.shareLink = share
+        case let .linkStyleChanged(style):
+            state.linkStyle = style
             return .none
         case let .textColorModified(color):
             state.textColor = color
@@ -190,8 +201,12 @@ public struct SettingsFeatureView: View {
                                 .tag(style)
                         }
                     }
-                    Toggle("Share Link with Image",
-                           isOn: viewStore.binding(get: \.shareLink, send: SettingsFeature.Action.shareLinkToggled))
+                    Picker("Link", selection: viewStore.binding(get: \.linkStyle, send: SettingsFeature.Action.linkStyleChanged).animation()) {
+                        ForEach(SettingsFeature.LinkStyle.allCases) { style in
+                            Text(style.rawValue)
+                                .tag(style)
+                        }
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {

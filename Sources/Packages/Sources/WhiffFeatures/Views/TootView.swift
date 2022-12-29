@@ -73,6 +73,11 @@ struct TootView: View {
                     .foregroundColor(settings.textColor)
                     .font(.system(.footnote, design: .rounded, weight: .regular))
             }
+            if case .inImage = settings.linkStyle {
+                Text(toot.url.absoluteString)
+                    .foregroundColor(settings.textColor)
+                    .font(.system(.footnote, design: .rounded, weight: .regular))
+            }
         }
         .padding()
         .background(settings.backgroundColor)
