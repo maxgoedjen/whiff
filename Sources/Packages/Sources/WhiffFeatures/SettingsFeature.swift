@@ -59,7 +59,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         }
 
         public var linkStyle: LinkStyle {
-            get { persistableState.linkStyle ?? .inImage }
+            get { persistableState.linkStyle ?? .afterImage }
             set { persistableState.linkStyle = newValue }
         }
 
