@@ -35,7 +35,7 @@ public extension DependencyValues {
 private enum KeyValueStorageKey: DependencyKey {
     static let liveValue: KeyValueStorage = UserDefaultsStorage(defaults: .standard)
     #if DEBUG
-    static let testValue: KeyValueStorage = { fatalError("Unimplemented") }()
+    static let testValue: KeyValueStorage = UnimplementedKeyValueStorage()
     #endif
 }
 

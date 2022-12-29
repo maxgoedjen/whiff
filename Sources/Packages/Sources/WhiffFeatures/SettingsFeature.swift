@@ -7,7 +7,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
 
     @Dependency(\.keyValueStorage) var keyValueStorage
 
-    fileprivate struct PersistableState: Equatable, Sendable, Codable {
+    internal struct PersistableState: Equatable, Sendable, Codable {
         var textColorData: Data?
         var linkColorData: Data?
         var backgroundColorData: Data?
