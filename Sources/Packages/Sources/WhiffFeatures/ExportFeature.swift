@@ -238,6 +238,7 @@ public struct ExportFeatureView: View {
                                     .buttonStyle(.borderedProminent)
                             } else {
                                 ShareLink(item: rendered, preview: SharePreview("Rendered Toot"))
+                                    .buttonStyle(.borderedProminent)
                             }
                         } else {
                             ShareLink(item: "")
