@@ -32,7 +32,15 @@ final class SettingsFeatureTests: XCTestCase {
     }
 
     func testLoadFromComplete() async throws {
-        let persistible = SettingsFeature.PersistableState(textColorData: nil, linkColorData: nil, backgroundColorData: nil, showDate: true, roundCorners: false, imageStyle: .stacked, linkStyle: .afterImage)
+        let persistible = SettingsFeature.PersistableState(
+            textColorData: nil,
+            linkColorData: nil,
+            backgroundColorData: nil,
+            showDate: true,
+            roundCorners: false,
+            imageStyle: .stacked,
+            linkStyle: .afterImage
+        )
         defaults["settings"] = try JSONEncoder().encode(persistible)
         await store.send(.load) {
             $0.showDate = true

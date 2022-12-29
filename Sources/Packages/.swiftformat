@@ -18,7 +18,7 @@
 --indent 4
 --indentcase false
 --importgrouping testable-bottom
---maxwidth none
+--maxwidth 180
 --octalgrouping 4,8
 --operatorfunc spaced
 --patternlet hoist

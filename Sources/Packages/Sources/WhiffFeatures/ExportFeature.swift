@@ -44,75 +44,75 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     }
 
     public func internalReduce(into state: inout State, action: Action) -> EffectTask<Action> {
-            switch action {
-            case let .requested(url):
-                state.toot = nil
-                state.images = [:]
-                return .task {
-                    return .settings(.load)
-                }
-                .concatenate(with: .task {
-                    .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
-                })
-            case let .tootSniffCompleted(.success(toot)):
-                state.toot = toot
-                do {
-                    state.attributedContent = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
-                } catch {
-                    state.attributedContent = nil
-                }
-                state.errorMessage = nil
-                for attachment in toot.allImages {
-                    let url = attachment.url
-                    if let blurhash = attachment.blurhash {
-                        let key = URLKey(url, .blurhash)
-                        let scaled = CGSize(width: 10.0, height: attachment.size.height * (10.0 / attachment.size.width))
-                        guard let image = BlurHash(string: blurhash)?.image(size: scaled) else { continue }
-                        state.images[key] = Image(uiImage: image)
-                    }
-                }
-                var effect = EffectTask<Action>.none
-                for attachment in toot.allImages {
-                    let url = attachment.url
-                    effect = effect.merge(with: EffectTask.task {
-                        .loadImageCompleted(await TaskResult {
-                            let key = URLKey(url, .remote)
-                            let (data, _) = try await urlSession.data(from: url)
-                            guard let image = UIImage(data: data) else { throw UnableToParseImage() }
-                            return ImageLoadResponse(key, Image(uiImage: image))
-                        })
-                    })
-                }
-                return effect
-            case let .tootSniffCompleted(.failure(error)):
-                state.toot = nil
-                if let localized = error as? LocalizedError {
-                    state.errorMessage = localized.errorDescription
-                } else {
-                    state.errorMessage = "Unknown Error"
-                }
-                return .none
-            case let .loadImageCompleted(.success(response)):
-                state.images[response.url] = response.image
-                return .none
-            case let .loadImageCompleted(.failure(error)):
-                print(error)
-                return .none
-            case let .tappedSettings(showing):
-                state.showingSettings = showing
-                return .none
-            case let .settings(action):
-                if case .tappedDone = action {
-                    state.showingSettings = false
-                }
-                return .none
-            case .rerendered(.failure):
-                state.rendered = nil
-                return .none
-            case let .rerendered(.success(image)):
-                state.rendered = image
-                return .none
+        switch action {
+        case let .requested(url):
+            state.toot = nil
+            state.images = [:]
+            return .task {
+                return .settings(.load)
             }
+            .concatenate(with: .task {
+                .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
+            })
+        case let .tootSniffCompleted(.success(toot)):
+            state.toot = toot
+            do {
+                state.attributedContent = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
+            } catch {
+                state.attributedContent = nil
+            }
+            state.errorMessage = nil
+            for attachment in toot.allImages {
+                let url = attachment.url
+                if let blurhash = attachment.blurhash {
+                    let key = URLKey(url, .blurhash)
+                    let scaled = CGSize(width: 10.0, height: attachment.size.height * (10.0 / attachment.size.width))
+                    guard let image = BlurHash(string: blurhash)?.image(size: scaled) else { continue }
+                    state.images[key] = Image(uiImage: image)
+                }
+            }
+            var effect = EffectTask<Action>.none
+            for attachment in toot.allImages {
+                let url = attachment.url
+                effect = effect.merge(with: EffectTask.task {
+                    .loadImageCompleted(await TaskResult {
+                        let key = URLKey(url, .remote)
+                        let (data, _) = try await urlSession.data(from: url)
+                        guard let image = UIImage(data: data) else { throw UnableToParseImage() }
+                        return ImageLoadResponse(key, Image(uiImage: image))
+                    })
+                })
+            }
+            return effect
+        case let .tootSniffCompleted(.failure(error)):
+            state.toot = nil
+            if let localized = error as? LocalizedError {
+                state.errorMessage = localized.errorDescription
+            } else {
+                state.errorMessage = "Unknown Error"
+            }
+            return .none
+        case let .loadImageCompleted(.success(response)):
+            state.images[response.url] = response.image
+            return .none
+        case let .loadImageCompleted(.failure(error)):
+            print(error)
+            return .none
+        case let .tappedSettings(showing):
+            state.showingSettings = showing
+            return .none
+        case let .settings(action):
+            if case .tappedDone = action {
+                state.showingSettings = false
+            }
+            return .none
+        case .rerendered(.failure):
+            state.rendered = nil
+            return .none
+        case let .rerendered(.success(image)):
+            state.rendered = image
+            return .none
+        }
     }
 
     public func rerenderReduce(into state: inout State, action: Action) -> EffectTask<Action> {
@@ -132,7 +132,6 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             return .none
         }
     }
-
 
     private func rerenderTask(state: State) async throws -> Action {
         .rerendered(

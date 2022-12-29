@@ -43,14 +43,24 @@ struct TootView: View {
                 content
                 HStack {
                     ForEach(toot.mediaAttachments) { attachment in
-                        ImageWrapperView(image: images[URLKey(attachment.url, .remote)], blurhash: images[URLKey(attachment.url, .blurhash)], size: attachment.size, contentMode: .fit)
+                        ImageWrapperView(
+                            image: images[URLKey(attachment.url, .remote)],
+                            blurhash: images[URLKey(attachment.url, .blurhash)],
+                            size: attachment.size,
+                            contentMode: .fit
+                        )
                     }
                 }
             case .stacked:
                 content
                 VStack(spacing: 5) {
                     ForEach(toot.mediaAttachments) { attachment in
-                        ImageWrapperView(image: images[URLKey(attachment.url, .remote)], blurhash: images[URLKey(attachment.url, .blurhash)], size: attachment.size, contentMode: .fill)
+                        ImageWrapperView(
+                            image: images[URLKey(attachment.url, .remote)],
+                            blurhash: images[URLKey(attachment.url, .blurhash)],
+                            size: attachment.size,
+                            contentMode: .fill
+                        )
                     }
                 }
             case .fan:
@@ -58,11 +68,16 @@ struct TootView: View {
                     content
                     ZStack {
                         ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { idx, attachment in
-                            ImageWrapperView(image: images[URLKey(attachment.url, .remote)], blurhash: images[URLKey(attachment.url, .blurhash)], size: attachment.size, contentMode: .fit)
-                                .frame(maxWidth: 50)
-                                .border(.white, width: 1)
-                                .shadow(radius: 5)
-                                .rotationEffect(Angle(degrees: Double(idx)) * 10)
+                            ImageWrapperView(
+                                image: images[URLKey(attachment.url, .remote)],
+                                blurhash: images[URLKey(attachment.url, .blurhash)],
+                                size: attachment.size,
+                                contentMode: .fit
+                            )
+                            .frame(maxWidth: 50)
+                            .border(.white, width: 1)
+                            .shadow(radius: 5)
+                            .rotationEffect(Angle(degrees: Double(idx)) * 10)
 
                         }
                     }

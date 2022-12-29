@@ -65,6 +65,12 @@ public struct URLKey: Hashable, Sendable {
 
 public extension Toot {
 
-    static let placeholder = Toot(url: URL(string: "https://example.com")!, createdAt: .distantPast, content: "Hello world. Hello world. Hello world. Hello world. Hello world.", account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com")!), mediaAttachments: [])
+    static let placeholder = Toot(
+        url: URL(string: "https://example.com")!,
+        createdAt: .distantPast,
+        content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
+        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com")!),
+        mediaAttachments: []
+    )
 
 }
