@@ -118,7 +118,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     public func rerenderReduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
         case .tootSniffCompleted, .loadImageCompleted, .settings:
-            if let toot = state.toot {
+            if let toot = state.toot, case .settings(.linkColorModified) = action {
                 do {
                     state.attributedContent = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
                 } catch {
