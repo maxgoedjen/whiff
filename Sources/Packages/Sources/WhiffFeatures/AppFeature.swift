@@ -10,6 +10,11 @@ public struct AppFeature: ReducerProtocol, Sendable {
 
         public init() {
         }
+
+        internal init(showing: Bool = false, exportState: ExportFeature.State = ExportFeature.State()) {
+            self.showing = showing
+            self.exportState = exportState
+        }
     }
 
     public enum Action: Equatable {
@@ -32,6 +37,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
                 }
             case let .setShowing(showing):
                 state.showing = showing
+                state.exportState = ExportFeature.State()
                 return .none
             default:
                 return .none

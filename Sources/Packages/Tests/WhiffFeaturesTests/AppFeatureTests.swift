@@ -35,4 +35,15 @@ final class AppFeatureTests: XCTestCase {
         }
     }
 
+    func testDismiss() async throws {
+        store = TestStore(
+            initialState: AppFeature.State(showing: true),
+            reducer: AppFeature()
+        )
+        await store.send(.setShowing(false)) {
+            $0.showing = false
+            $0.exportState = ExportFeature.State()
+        }
+    }
+
 }
