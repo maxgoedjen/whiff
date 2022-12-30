@@ -1,5 +1,5 @@
 import BlurHashKit
-@preconcurrency import SwiftUI
+import SwiftUI
 import TootSniffer
 
 struct TootView: View {

@@ -29,22 +29,24 @@ public final class TootSniffer: TootSnifferProtocol {
         let (data, _) = try await URLSession.shared.data(from: url)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let string = try container.decode(String.self)
-            let formatter = ISO8601DateFormatter()
-            formatter.formatOptions = [.withFractionalSeconds, .withFullDate, .withFullTime]
-            guard let date = formatter.date(from: string) else {
-                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to parse date")
-            }
-            return date
-        }
+        decoder.dateDecodingStrategy = .custom(dateDecoder)
         do {
             let raw = try decoder.decode(Toot.self, from: data)
             return try cleanToot(raw)
         } catch {
             throw NotAMastadonPost()
         }
+    }
+
+    @Sendable @inlinable func dateDecoder(_ decoder: Decoder) throws -> Date {
+        let container = try decoder.singleValueContainer()
+        let string = try container.decode(String.self)
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFractionalSeconds, .withFullDate, .withFullTime]
+        guard let date = formatter.date(from: string) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unable to parse date")
+        }
+        return date
     }
 
     func cleanToot(_ toot: Toot) throws -> Toot {

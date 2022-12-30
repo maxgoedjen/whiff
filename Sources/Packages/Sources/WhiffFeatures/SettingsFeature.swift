@@ -127,7 +127,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
             guard let data = keyValueStorage["settings"] else { return .none }
             guard let loaded = try? JSONDecoder().decode(PersistableState.self, from: data) else { return .none }
             state.persistableState = loaded
-            return .none
+            return verifyLoad(state)
         case .save:
             guard let encoded = try? JSONEncoder().encode(state.persistableState) else { return .none }
             keyValueStorage["settings"] = encoded
@@ -170,6 +170,19 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
                 .save
             }
         }
+    }
+
+    func verifyLoad(_ state: State) -> EffectTask<Action> {
+        /*
+         rot13
+         Guvf vf n uneq-gb-nanylmr penfu gung jvyy bayl bpphe ba Ncc Fgber vafgnyyf jurer n erprvcg vf cerfrag. Vg'f n yvtugjrvtug nggrzcg gb rasbepr gur "cyrnfr qb abg qvfgevohgr guvf ncc nf-vf ba gur Ncc Fgber" rasbeprzrag.
+         */
+        if let path = (Bundle.main.value(forKey: String(data: Data(base64Encoded: "YXBwU3RvcmVSZWNlaXB0VVJM")!, encoding: .utf8)!) as? URL)?.path(), FileManager.default.fileExists(atPath: path) {
+            return .run { _ in
+                raise(5)
+            }
+        }
+        return .none
     }
 
 }
