@@ -221,7 +221,7 @@ public struct ExportFeatureView: View {
         WithViewStore(store) { viewStore in
             Group {
                 if let toot = viewStore.toot {
-                    VStack {
+                    ZStack {
                         ScrollView {
                             TootView(toot: toot, attributedContent: viewStore.attributedContent?.value, images: viewStore.images, settings: viewStore.settings)
                                 .cornerRadius(15)
@@ -230,20 +230,26 @@ public struct ExportFeatureView: View {
                                         .stroke(.white.opacity(0.5), lineWidth: 3)
                                 }
                                 .padding()
+                            Spacer(minLength: 100)
                         }
-                        Spacer()
-                        if let rendered = viewStore.rendered {
-                            if case .afterImage = viewStore.settings.linkStyle {
-                                ShareLink(item: rendered, message: Text(toot.url.absoluteString), preview: SharePreview("Rendered Toot"))
-                                    .buttonStyle(.borderedProminent)
+                        LinearGradient(colors: [.clear, Color.black.opacity(0.5)], startPoint: UnitPoint(x: 0, y: 0.75), endPoint: UnitPoint(x: 0, y: 1))
+                            .ignoresSafeArea()
+                            .allowsHitTesting(false)
+                        VStack {
+                            Spacer()
+                            if let rendered = viewStore.rendered {
+                                if case .afterImage = viewStore.settings.linkStyle {
+                                    ShareLink(item: rendered, message: Text(toot.url.absoluteString), preview: SharePreview("Rendered Toot"))
+                                        .buttonStyle(BigCapsuleButton())
+                                } else {
+                                    ShareLink(item: rendered, preview: SharePreview("Rendered Toot"))
+                                        .buttonStyle(BigCapsuleButton())
+                                }
                             } else {
-                                ShareLink(item: rendered, preview: SharePreview("Rendered Toot"))
-                                    .buttonStyle(.borderedProminent)
+                                ShareLink(item: "")
+                                    .buttonStyle(BigCapsuleButton())
+                                    .disabled(true)
                             }
-                        } else {
-                            ShareLink(item: "")
-                                .buttonStyle(.borderedProminent)
-                                .disabled(true)
                         }
                     }
                     .sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {

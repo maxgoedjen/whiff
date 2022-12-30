@@ -15,5 +15,6 @@ public struct PasteButtonThreadSafe<T: Transferable>: View {
                 onPaste(values)
             }
         }
+        .buttonStyle(BigCapsuleButton())
     }
 }
