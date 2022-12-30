@@ -25,8 +25,8 @@ public struct AppFeature: ReducerProtocol, Sendable {
         Reduce { state, action in
             switch action {
             case let .load(urls):
-                state.showing = true
                 guard let url = urls.first else { return .none }
+                state.showing = true
                 return .task {
                     return .export(.requested(url: url))
                 }
