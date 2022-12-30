@@ -69,8 +69,32 @@ public extension Toot {
         url: URL(string: "https://example.com")!,
         createdAt: .distantPast,
         content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
-        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com")!),
+        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
         mediaAttachments: []
+    )
+
+    static let placeholderWithHTML = Toot(
+        url: URL(string: "https://example.com")!,
+        createdAt: .distantPast,
+        content: "Hello world. <a href=\"https://example.com\">Test</a>",
+        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
+        mediaAttachments: []
+    )
+
+    static let placeholderWithAttachments = Toot(
+        url: URL(string: "https://example.com")!,
+        createdAt: .distantPast,
+        content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
+        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
+        mediaAttachments:
+            (0..<4).map {
+                MediaAttachment(
+                    id: $0.formatted(),
+                    url: URL(string: "https://example.com/\($0)")!,
+                    meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 1, height: 1)),
+                    blurhash: nil
+                )
+            }
     )
 
 }
