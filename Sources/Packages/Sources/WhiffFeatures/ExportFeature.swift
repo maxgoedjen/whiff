@@ -241,33 +241,39 @@ public struct ExportFeatureView: View {
             Group {
                 if let toot = viewStore.toot {
                     ZStack {
-                        ScrollView {
-                            ForEach(viewStore.tootContext?.ancestors ?? []) { ancestor in
-                                TootView(toot: ancestor, attributedContent: viewStore.attributedContent[ancestor.id]?.value, images: viewStore.images, settings: viewStore.settings)
+                        ScrollViewReader { value in
+                            ScrollView {
+                                ForEach(viewStore.tootContext?.ancestors ?? []) { ancestor in
+                                    TootView(toot: ancestor, attributedContent: viewStore.attributedContent[ancestor.id]?.value, images: viewStore.images, settings: viewStore.settings)
                                         .cornerRadius(15)
                                         .overlay {
                                             RoundedRectangle(cornerRadius: 15)
                                                 .stroke(.white.opacity(0.5), lineWidth: 3)
                                         }
                                         .padding()
-                            }
-                            TootView(toot: toot, attributedContent: viewStore.attributedContent[toot.id]?.value, images: viewStore.images, settings: viewStore.settings)
-                                    .cornerRadius(15)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .stroke(.white.opacity(0.5), lineWidth: 3)
-                                    }
-                                    .padding()
-                            ForEach(viewStore.tootContext?.descendants ?? []) { descendant in
-                                TootView(toot: descendant, attributedContent: viewStore.attributedContent[descendant.id]?.value, images: viewStore.images, settings: viewStore.settings)
+                                }
+                                .onAppear {
+                                    value.scrollTo("Canonical", anchor: .top)
+                                }
+                                    TootView(toot: toot, attributedContent: viewStore.attributedContent[toot.id]?.value, images: viewStore.images, settings: viewStore.settings)
                                         .cornerRadius(15)
                                         .overlay {
                                             RoundedRectangle(cornerRadius: 15)
                                                 .stroke(.white.opacity(0.5), lineWidth: 3)
                                         }
                                         .padding()
+                                        .id("Canonical")
+                                ForEach(viewStore.tootContext?.descendants ?? []) { descendant in
+                                    TootView(toot: descendant, attributedContent: viewStore.attributedContent[descendant.id]?.value, images: viewStore.images, settings: viewStore.settings)
+                                        .cornerRadius(15)
+                                        .overlay {
+                                            RoundedRectangle(cornerRadius: 15)
+                                                .stroke(.white.opacity(0.5), lineWidth: 3)
+                                        }
+                                        .padding()
+                                }
+                                Spacer(minLength: 100)
                             }
-                            Spacer(minLength: 100)
                         }
                         LinearGradient(colors: [.clear, Color.black.opacity(0.5)], startPoint: UnitPoint(x: 0, y: 0.75), endPoint: UnitPoint(x: 0, y: 1))
                             .ignoresSafeArea()
