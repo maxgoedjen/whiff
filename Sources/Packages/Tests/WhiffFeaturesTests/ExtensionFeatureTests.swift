@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import XCTest
 import SwiftUI
+import XCTest
 @testable import WhiffFeatures
 
 @MainActor
@@ -19,11 +19,11 @@ final class ExtensionFeatureTests: XCTestCase {
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder)))
                 .dependency(\.urlSession, .shared)
-                .dependency(\.dismissExtension, { error in
+                .dependency(\.dismissExtension) { error in
                     XCTAssertFalse(self.dismissCalled)
                     self.dismissCalled = true
                     self.dismissError = error
-                })
+                }
         )
     }
 

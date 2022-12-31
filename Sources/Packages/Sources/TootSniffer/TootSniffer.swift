@@ -56,7 +56,7 @@ public final class TootSniffer: TootSnifferProtocol {
         decoder.dateDecodingStrategy = .custom(dateDecoder)
         do {
             var raw = try decoder.decode(TootContext.self, from: data)
-            let cleanedAncestors = try raw.ancestors.map( cleanToot(_:))
+            let cleanedAncestors = try raw.ancestors.map(cleanToot(_:))
             let cleanedDescendants = try raw.ancestors.map(cleanToot(_:))
             raw.ancestors = cleanedAncestors
             raw.descendants = cleanedDescendants
@@ -65,7 +65,6 @@ public final class TootSniffer: TootSnifferProtocol {
             throw NotAMastadonPost()
         }
     }
-
 
     @Sendable @inlinable func dateDecoder(_ decoder: Decoder) throws -> Date {
         let container = try decoder.singleValueContainer()

@@ -13,12 +13,11 @@ public final actor StubTootSniffer: TootSnifferProtocol {
     public func sniff(url: URL) async throws -> Toot {
         callCount += 1
         switch result {
-        case .success(let success):
+        case let .success(success):
             return success
-        case .failure(let failure):
+        case let .failure(failure):
             throw failure
         }
     }
-
 
 }

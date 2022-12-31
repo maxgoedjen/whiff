@@ -128,7 +128,8 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 guard let toot = state.toot else {
                     throw UnableToRender()
                 }
-                let renderer = ImageRenderer(content: ScreenshotView(toot: toot, attributedContent: state.attributedContent[toot.id]?.value, images: state.images, settings: state.settings))
+                let renderer =
+                    ImageRenderer(content: ScreenshotView(toot: toot, attributedContent: state.attributedContent[toot.id]?.value, images: state.images, settings: state.settings))
                 renderer.scale = screenScale
                 guard let image = renderer.uiImage else {
                     throw UnableToRender()
@@ -244,33 +245,43 @@ public struct ExportFeatureView: View {
                         ScrollViewReader { value in
                             ScrollView {
                                 ForEach(viewStore.tootContext?.ancestors ?? []) { ancestor in
-                                    TootView(toot: ancestor, attributedContent: viewStore.attributedContent[ancestor.id]?.value, images: viewStore.images, settings: viewStore.settings)
-                                        .cornerRadius(15)
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 15)
-                                                .stroke(.white.opacity(0.5), lineWidth: 3)
-                                        }
-                                        .padding()
+                                    TootView(
+                                        toot: ancestor,
+                                        attributedContent: viewStore.attributedContent[ancestor.id]?.value,
+                                        images: viewStore.images,
+                                        settings: viewStore.settings
+                                    )
+                                    .cornerRadius(15)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .stroke(.white.opacity(0.5), lineWidth: 3)
+                                    }
+                                    .padding()
                                 }
                                 .onAppear {
                                     value.scrollTo("Canonical", anchor: .top)
                                 }
-                                    TootView(toot: toot, attributedContent: viewStore.attributedContent[toot.id]?.value, images: viewStore.images, settings: viewStore.settings)
-                                        .cornerRadius(15)
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 15)
-                                                .stroke(.white.opacity(0.5), lineWidth: 3)
-                                        }
-                                        .padding()
-                                        .id("Canonical")
+                                TootView(toot: toot, attributedContent: viewStore.attributedContent[toot.id]?.value, images: viewStore.images, settings: viewStore.settings)
+                                    .cornerRadius(15)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .stroke(.white.opacity(0.5), lineWidth: 3)
+                                    }
+                                    .padding()
+                                    .id("Canonical")
                                 ForEach(viewStore.tootContext?.descendants ?? []) { descendant in
-                                    TootView(toot: descendant, attributedContent: viewStore.attributedContent[descendant.id]?.value, images: viewStore.images, settings: viewStore.settings)
-                                        .cornerRadius(15)
-                                        .overlay {
-                                            RoundedRectangle(cornerRadius: 15)
-                                                .stroke(.white.opacity(0.5), lineWidth: 3)
-                                        }
-                                        .padding()
+                                    TootView(
+                                        toot: descendant,
+                                        attributedContent: viewStore.attributedContent[descendant.id]?.value,
+                                        images: viewStore.images,
+                                        settings: viewStore.settings
+                                    )
+                                    .cornerRadius(15)
+                                    .overlay {
+                                        RoundedRectangle(cornerRadius: 15)
+                                            .stroke(.white.opacity(0.5), lineWidth: 3)
+                                    }
+                                    .padding()
                                 }
                                 Spacer(minLength: 100)
                             }

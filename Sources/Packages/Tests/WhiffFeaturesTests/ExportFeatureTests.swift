@@ -1,7 +1,7 @@
 import ComposableArchitecture
-import XCTest
 import SwiftUI
 import TootSniffer
+import XCTest
 @testable import WhiffFeatures
 
 @MainActor
@@ -63,7 +63,6 @@ final class ExportFeatureTests: XCTestCase {
     }
 
     func testChangeColorSettingEvaluatesAttributedContent() async throws {
-
     }
 
     func testSettingChangeRerenders() async throws {

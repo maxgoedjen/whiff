@@ -1,6 +1,6 @@
 import ComposableArchitecture
-import XCTest
 import SwiftUI
+import XCTest
 @testable import WhiffFeatures
 
 @MainActor
