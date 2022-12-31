@@ -4,28 +4,39 @@ import SwiftUI
 
 public protocol TootSnifferProtocol: Sendable {
     func sniff(url: URL) async throws -> Toot
+    func sniffContext(url: URL) async throws -> TootContext
 }
 
 public final class TootSniffer: TootSnifferProtocol {
+
+    private enum Endpoint: String {
+        case status = ""
+        case context = "/context"
+    }
 
     public init() {
     }
 
     public func sniff(url: URL) async throws -> Toot {
-        let apiURL = try await constructMastodonAPIURL(url: url)
+        let apiURL = try await constructMastodonAPIURL(url: url, endpoint: .status)
         return try await loadToot(url: apiURL)
     }
 
-    func constructMastodonAPIURL(url: URL) async throws -> URL {
+    public func sniffContext(url: URL) async throws -> TootContext {
+        let apiURL = try await constructMastodonAPIURL(url: url, endpoint: .context)
+        return try await loadTootContext(url: apiURL)
+    }
+
+    private func constructMastodonAPIURL(url: URL, endpoint: Endpoint) async throws -> URL {
         guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let id = apiLink.path.split(separator: "/").last
         else { throw NoLinkParameter() }
-        apiLink.path = "/api/v1/statuses/\(id)"
+        apiLink.path = "/api/v1/statuses/\(id)" + endpoint.rawValue
         guard let final = apiLink.url else { throw NoLinkParameter() }
         return final
     }
 
-    func loadToot(url: URL) async throws -> Toot {
+    private func loadToot(url: URL) async throws -> Toot {
         let (data, _) = try await URLSession.shared.data(from: url)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -37,6 +48,24 @@ public final class TootSniffer: TootSnifferProtocol {
             throw NotAMastadonPost()
         }
     }
+
+    private func loadTootContext(url: URL) async throws -> TootContext {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .custom(dateDecoder)
+        do {
+            var raw = try decoder.decode(TootContext.self, from: data)
+            let cleanedAncestors = try raw.ancestors.map( cleanToot(_:))
+            let cleanedDescendants = try raw.ancestors.map(cleanToot(_:))
+            raw.ancestors = cleanedAncestors
+            raw.descendants = cleanedDescendants
+            return raw
+        } catch {
+            throw NotAMastadonPost()
+        }
+    }
+
 
     @Sendable @inlinable func dateDecoder(_ decoder: Decoder) throws -> Date {
         let container = try decoder.singleValueContainer()
@@ -69,6 +98,10 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
     }
 
     public func sniff(url: URL) async throws -> Toot {
+        fatalError("Unimplemented")
+    }
+
+    public func sniffContext(url: URL) async throws -> TootContext {
         fatalError("Unimplemented")
     }
 
