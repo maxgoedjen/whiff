@@ -30,14 +30,14 @@ public final class TootSniffer: TootSnifferProtocol {
     private func constructMastodonAPIURL(url: URL, endpoint: Endpoint) async throws -> URL {
         guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let id = apiLink.path.split(separator: "/").last
-        else { throw NoLinkParameter() }
+        else { throw NoLinkParameterError() }
         apiLink.path = "/api/v1/statuses/\(id)" + endpoint.rawValue
-        guard let final = apiLink.url else { throw NoLinkParameter() }
+        guard let final = apiLink.url else { throw NoLinkParameterError() }
         return final
     }
 
     private func loadToot(url: URL) async throws -> Toot {
-        let (data, _) = try await URLSession.shared.data(from: url)
+        let (data, response) = try await URLSession.shared.data(from: url)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .custom(dateDecoder)
@@ -45,7 +45,10 @@ public final class TootSniffer: TootSnifferProtocol {
             let raw = try decoder.decode(Toot.self, from: data)
             return try cleanToot(raw)
         } catch {
-            throw NotAMastadonPost()
+            if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+                throw NotAuthenticatedError()
+            }
+            throw NotAMastadonPostError()
         }
     }
 
@@ -62,7 +65,7 @@ public final class TootSniffer: TootSnifferProtocol {
             raw.descendants = cleanedDescendants
             return raw
         } catch {
-            throw NotAMastadonPost()
+            throw NotAMastadonPostError()
         }
     }
 
@@ -106,10 +109,14 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
 
 }
 
-struct NotAMastadonPost: LocalizedError {
+struct NotAMastadonPostError: LocalizedError {
     let errorDescription: String? = "This isn't a Mastodon Post."
 }
 
-struct NoLinkParameter: LocalizedError {
+struct NoLinkParameterError: LocalizedError {
     let errorDescription: String? = "Unable to parse Toot."
+}
+
+struct NotAuthenticatedError: LocalizedError {
+    let errorDescription: String? = "This Toot requires authentication to view."
 }
