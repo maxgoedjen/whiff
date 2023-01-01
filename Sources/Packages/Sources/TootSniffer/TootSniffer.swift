@@ -60,7 +60,7 @@ public final class TootSniffer: TootSnifferProtocol {
         do {
             var raw = try decoder.decode(TootContext.self, from: data)
             let cleanedAncestors = try raw.ancestors.map(cleanToot(_:))
-            let cleanedDescendants = try raw.ancestors.map(cleanToot(_:))
+            let cleanedDescendants = try raw.descendants.map(cleanToot(_:))
             raw.ancestors = cleanedAncestors
             raw.descendants = cleanedDescendants
             return raw
