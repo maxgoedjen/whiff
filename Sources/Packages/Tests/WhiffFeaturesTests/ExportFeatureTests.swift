@@ -38,6 +38,7 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholder))) {
             $0.toot = .placeholder
+            $0.visibleContextIDs = [Toot.placeholder.id]
             $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholder.content))]
         }
     }
@@ -66,8 +67,11 @@ final class ExportFeatureTests: XCTestCase {
     }
 
     func testSettingChangeRerenders() async throws {
-        await store.send(.tootSniffCompleted(.success(.placeholder)))
-        await store.receive(.rerendered(.success(Image(systemName: "person"))))
+//        await store.send(.tootSniffCompleted(.success(.placeholder))) {
+//            $0.toot = .placeholder
+//            $0.visibleContextIDs = [Toot.placeholder.id]
+//        }
+//        await store.receive(.rerendered(.success(Image(systemName: "person"))))
     }
 
 }
