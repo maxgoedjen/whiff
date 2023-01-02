@@ -121,7 +121,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public func rerenderReduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
-        case .tootSniffCompleted, .loadImageCompleted, .settings:
+        case .tootSniffCompleted, .loadImageCompleted, .settings, .tappedContextToot:
             if let toot = state.toot, case .settings(.linkColorModified) = action {
                 do {
                     state.attributedContent[toot.id] = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
@@ -140,11 +140,27 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     private func rerenderTask(state: State) async throws -> Action {
         .rerendered(
             await TaskResult { @MainActor in
-                guard let toot = state.toot else {
+                guard state.toot != nil else {
                     throw UnableToRender()
                 }
+
+                let view = VStack(spacing: 0) {
+                    ForEach(state.allToots) { toot in
+                        if state.visibleContextIDs.contains(toot.id) {
+                            TootView(
+                                toot: toot,
+                                attributedContent: state.attributedContent[toot.id]?.value,
+                                images: state.images,
+                                settings: state.settings
+                            )
+                            .frame(width: 400)
+                        }
+                    }
+                }
+                    .clipShape(RoundedRectangle(cornerRadius: state.settings.roundCorners ? 15 : 0))
+
                 let renderer =
-                    ImageRenderer(content: ScreenshotView(toot: toot, attributedContent: state.attributedContent[toot.id]?.value, images: state.images, settings: state.settings))
+                    ImageRenderer(content: view)
                 renderer.scale = screenScale
                 guard let image = renderer.uiImage else {
                     throw UnableToRender()
@@ -230,20 +246,6 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
 }
 
-struct ScreenshotView: View {
-
-    let toot: Toot
-    let attributedContent: AttributedString?
-    let images: [URLKey: Image]
-    let settings: SettingsFeature.State
-
-    var body: some View {
-        TootView(toot: toot, attributedContent: attributedContent, images: images, settings: settings)
-            .frame(width: 400)
-    }
-
-}
-
 public struct ExportFeatureView: View {
 
     let store: StoreOf<ExportFeature>
@@ -259,25 +261,30 @@ public struct ExportFeatureView: View {
                     ZStack {
                         ScrollViewReader { value in
                             ScrollView {
-                                ForEach(viewStore.allToots) { toot in
-                                    TootView(
-                                        toot: toot,
-                                        attributedContent: viewStore.attributedContent[toot.id]?.value,
-                                        images: viewStore.images,
-                                        settings: viewStore.settings
-                                    )
-                                    .cornerRadius(15)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .stroke(.white.opacity(0.5), lineWidth: 3)
+                                VStack(spacing: 0) {
+                                    ForEach(viewStore.allToots) { toot in
+                                        TootView(
+                                            toot: toot,
+                                            attributedContent: viewStore.attributedContent[toot.id]?.value,
+                                            images: viewStore.images,
+                                            settings: viewStore.settings
+                                        )
+                                        .opacity(viewStore.visibleContextIDs.contains(toot.id) ? 1 : 0.2)
+                                        .onTapGesture {
+                                            viewStore.send(.tappedContextToot(toot), animation: .easeInOut(duration: 0.2))
+                                        }
+                                        .id(toot.id)
+                                        if viewStore.allToots.count > 1 {
+                                            Divider()
+                                        }
                                     }
-                                    .padding()
-                                    .opacity(viewStore.visibleContextIDs.contains(toot.id) ? 1 : 0.2)
-                                    .onTapGesture {
-                                        viewStore.send(.tappedContextToot(toot))
-                                    }
-                                    .id(toot.id)
                                 }
+                                .clipShape(RoundedRectangle(cornerRadius: 15))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 15)
+                                    .stroke(.white.opacity(0.25), lineWidth: 3)
+                                }
+                                .padding()
                                 if viewStore.tootContext != nil {
                                     Spacer(minLength: 0)
                                         .onAppear {
