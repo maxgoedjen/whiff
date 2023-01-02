@@ -7,8 +7,8 @@ import TootSniffer
 public struct ExportFeature: ReducerProtocol, Sendable {
 
     @Dependency(\.tootSniffer) var tootSniffer
+    @Dependency(\.imageRenderer) var imageRenderer
     @Dependency(\.urlSession) var urlSession
-    @Dependency(\.screenScale) var screenScale
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
@@ -121,66 +121,31 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public func rerenderReduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
+        case .settings(.load):
+            return .none
         case .tootSniffCompleted, .loadImageCompleted, .settings, .tappedContextToot:
             if let toot = state.toot, case .settings(.linkColorModified) = action {
                 do {
-                    state.attributedContent[toot.id] = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
+                    state.attributedContent[toot.id] = UncheckedSendable(try attributedContent(from: toot, linkColor: state.settings.linkColor))
                 } catch {
                     state.attributedContent[toot.id] = nil
                 }
             }
             return .task { [state] in
-                try await rerenderTask(state: state)
+                .rerendered(
+                    await TaskResult { @MainActor [state] in
+                        try await imageRenderer.render(state: state)
+                    }
+                )
             }
         default:
             return .none
         }
     }
 
-    private func rerenderTask(state: State) async throws -> Action {
-        .rerendered(
-            await TaskResult { @MainActor in
-                guard state.toot != nil else {
-                    throw UnableToRender()
-                }
-
-                let view = VStack(alignment: .leading, spacing: 0) {
-                    ForEach(Array(zip(state.allToots, state.allToots.indices)), id: \.0.id) { item in
-                        let (toot, idx) = item
-                        if state.visibleContextIDs.contains(toot.id) {
-                            TootView(
-                                toot: toot,
-                                attributedContent: state.attributedContent[toot.id]?.value,
-                                images: state.images,
-                                settings: state.settings
-                            )
-                            .frame(width: 400)
-                        }
-                        if idx < (state.allToots.count - 1) {
-                            // Divider doesn't work well in ImageRenderer
-                            Rectangle()
-                                .foregroundColor(.gray.opacity(0.25))
-                                .frame(height: 2)
-                        }
-                    }
-                }
-                .background(state.settings.backgroundColor)
-                .clipShape(RoundedRectangle(cornerRadius: state.settings.roundCorners ? 15 : 0))
-
-                let renderer =
-                    ImageRenderer(content: view)
-                renderer.scale = screenScale
-                guard let image = renderer.uiImage else {
-                    throw UnableToRender()
-                }
-                return Image(uiImage: image)
-            }
-        )
-    }
-
     func parseTootAndLoadAttachments(toot: Toot, state: inout State) -> EffectTask<Action> {
         do {
-            state.attributedContent[toot.id] = UncheckedSendable(try attributedContent(from: toot, tint: state.settings.linkColor))
+            state.attributedContent[toot.id] = UncheckedSendable(try attributedContent(from: toot, linkColor: state.settings.linkColor))
         } catch {
             state.attributedContent[toot.id] = nil
         }
@@ -200,7 +165,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 .loadImageCompleted(await TaskResult {
                     let key = URLKey(url, .remote)
                     let (data, _) = try await urlSession.data(from: url)
-                    guard let image = UIImage(data: data) else { throw UnableToParseImage() }
+                    guard let image = UIImage(data: data) else { throw UnableToParseImageError() }
                     return ImageLoadResponse(key, Image(uiImage: image))
                 })
             })
@@ -208,7 +173,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         return effect
     }
 
-    func attributedContent(from toot: Toot, tint: Color) throws -> AttributedString {
+    func attributedContent(from toot: Toot, linkColor: Color) throws -> AttributedString {
         // Gotta be unicode, not utf8
         let nsAttributed = try NSMutableAttributedString(
             data: toot.content.data(using: .unicode)!,
@@ -223,10 +188,12 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         nsAttributed.removeAttribute(.strokeWidth, range: fullRange)
         nsAttributed.removeAttribute(.strokeColor, range: fullRange)
 
-        let tint = UIColor(tint)
+        let uiLinkColor = UIColor(linkColor)
         nsAttributed.enumerateAttribute(.link, in: fullRange) { element, range, _ in
             guard element != nil else { return }
-            nsAttributed.setAttributes([.foregroundColor: tint], range: range)
+            nsAttributed.setAttributes([
+                .foregroundColor: uiLinkColor
+            ], range: range)
         }
 
         // Uncomment to generate data for previews
@@ -246,11 +213,6 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     }
 
-    struct UnableToParseImage: Error {
-    }
-
-    struct UnableToRender: Error {
-    }
 
 }
 

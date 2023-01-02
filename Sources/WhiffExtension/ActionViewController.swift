@@ -64,7 +64,7 @@ final class ShareExtension: UIHostingController<ExtensionFeatureView> {
 
 }
 
-struct URLNotFoundError: Error, LocalizedError {
+struct URLNotFoundError: LocalizedError, Equatable {
     let errorDescription: String? = "This isn't a Mastodon URL."
 }
 

@@ -109,14 +109,14 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
 
 }
 
-struct NotAMastadonPostError: LocalizedError {
+struct NotAMastadonPostError: LocalizedError, Equatable {
     let errorDescription: String? = "This isn't a Mastodon Post."
 }
 
-struct NoLinkParameterError: LocalizedError {
+struct NoLinkParameterError: LocalizedError, Equatable {
     let errorDescription: String? = "Unable to parse Toot."
 }
 
-struct NotAuthenticatedError: LocalizedError {
+struct NotAuthenticatedError: LocalizedError, Equatable {
     let errorDescription: String? = "This Toot requires authentication to view."
 }

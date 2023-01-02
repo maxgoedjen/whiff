@@ -18,20 +18,6 @@ public extension DependencyValues {
     }
 }
 
-private enum ScreenScaleKey: DependencyKey {
-    @MainActor static let liveValue: Double = UIScreen.main.scale
-    #if DEBUG
-    @MainActor static let testValue: Double = 3
-    #endif
-}
-
-public extension DependencyValues {
-    var screenScale: Double {
-        get { self[ScreenScaleKey.self] }
-        set { self[ScreenScaleKey.self] = newValue }
-    }
-}
-
 private enum KeyValueStorageKey: DependencyKey {
     static let liveValue: KeyValueStorage = UserDefaultsStorage(defaults: .standard)
     #if DEBUG
@@ -43,6 +29,20 @@ public extension DependencyValues {
     var keyValueStorage: KeyValueStorage {
         get { self[KeyValueStorageKey.self] }
         set { self[KeyValueStorageKey.self] = newValue }
+    }
+}
+
+private enum ImageRendererKey: DependencyKey {
+    static let liveValue: ImageRendererProtocol = ImageRendererSwiftUI()
+    #if DEBUG
+    static let testValue: ImageRendererProtocol = UnimplementedImageRenderer()
+    #endif
+}
+
+public extension DependencyValues {
+    var imageRenderer: ImageRendererProtocol {
+        get { self[ImageRendererKey.self] }
+        set { self[ImageRendererKey.self] = newValue }
     }
 }
 
