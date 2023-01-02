@@ -4,15 +4,28 @@ import TootSniffer
 public final actor StubTootSniffer: TootSnifferProtocol {
 
     let result: Result<Toot, Error>
-    var callCount = 0
+    let contextResult: Result<TootContext, Error>
+    var resultCallCount = 0
+    var contextResultCallCount = 0
 
-    init(_ result: Result<Toot, Error>) {
+    init(_ result: Result<Toot, Error>, _ contextResult: Result<TootContext, Error>) {
         self.result = result
+        self.contextResult = contextResult
     }
 
     public func sniff(url: URL) async throws -> Toot {
-        callCount += 1
+        resultCallCount += 1
         switch result {
+        case let .success(success):
+            return success
+        case let .failure(failure):
+            throw failure
+        }
+    }
+
+    public func sniffContext(url: URL) async throws -> TootContext {
+        contextResultCallCount += 1
+        switch contextResult {
         case let .success(success):
             return success
         case let .failure(failure):

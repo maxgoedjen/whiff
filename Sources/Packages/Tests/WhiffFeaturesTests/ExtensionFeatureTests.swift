@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import SwiftUI
 import XCTest
+@testable import TootSniffer
 @testable import WhiffFeatures
 
 @MainActor
@@ -17,7 +18,7 @@ final class ExtensionFeatureTests: XCTestCase {
             initialState: ExtensionFeature.State(),
             reducer: ExtensionFeature()
                 .dependency(\.keyValueStorage, StubStorage())
-                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder)))
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.urlSession, .shared)
                 .dependency(\.dismissExtension) { error in
                     XCTAssertFalse(self.dismissCalled)

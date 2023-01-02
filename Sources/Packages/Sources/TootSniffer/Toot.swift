@@ -58,6 +58,11 @@ public struct TootContext: Equatable, Sendable, Codable {
     public var ancestors: [Toot]
     public var descendants: [Toot]
 
+    init(ancestors: [Toot] = [], descendants: [Toot] = []) {
+        self.ancestors = ancestors
+        self.descendants = descendants
+    }
+
     public var all: [Toot] {
         ancestors + descendants
     }

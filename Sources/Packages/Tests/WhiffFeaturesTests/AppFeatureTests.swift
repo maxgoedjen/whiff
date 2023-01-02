@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import SwiftUI
 import XCTest
+@testable import TootSniffer
 @testable import WhiffFeatures
 
 @MainActor
@@ -14,7 +15,7 @@ final class AppFeatureTests: XCTestCase {
             initialState: AppFeature.State(),
             reducer: AppFeature()
                 .dependency(\.keyValueStorage, StubStorage())
-                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder)))
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.urlSession, .shared)
         )
     }

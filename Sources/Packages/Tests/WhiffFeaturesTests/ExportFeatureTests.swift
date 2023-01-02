@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import SwiftUI
-import TootSniffer
 import XCTest
+@testable import TootSniffer
 @testable import WhiffFeatures
 
 @MainActor
@@ -15,7 +15,7 @@ final class ExportFeatureTests: XCTestCase {
             initialState: ExportFeature.State(),
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
-                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder)))
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.urlSession, .shared)
         )
     }
@@ -31,14 +31,14 @@ final class ExportFeatureTests: XCTestCase {
             initialState: ExportFeature.State(),
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
-                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder)))
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.urlSession, .shared)
         )
         await store.send(.requested(url: URL(string: "https://example.com")!))
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholder))) {
             $0.toot = .placeholder
-            $0.attributedContent = UncheckedSendable(AttributedString(Toot.placeholder.content))
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholder.content))]
         }
     }
 

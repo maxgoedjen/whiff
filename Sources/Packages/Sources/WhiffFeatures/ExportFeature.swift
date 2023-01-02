@@ -85,7 +85,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             for toot in context.all {
                 effect = effect.merge(with: parseTootAndLoadAttachments(toot: toot, state: &state))
             }
-            return effect
+            return effect.animation()
         case .tootSniffContextCompleted(.failure):
             return .none
         case let .loadImageCompleted(.success(response)):
