@@ -1,6 +1,6 @@
 import Foundation
-import WhiffFeatures
 import os
+import WhiffFeatures
 
 public final class StubStorage: KeyValueStorage, @unchecked Sendable {
 

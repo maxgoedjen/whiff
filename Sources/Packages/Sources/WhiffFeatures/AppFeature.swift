@@ -10,6 +10,11 @@ public struct AppFeature: ReducerProtocol, Sendable {
 
         public init() {
         }
+
+        internal init(showing: Bool = false, exportState: ExportFeature.State = ExportFeature.State()) {
+            self.showing = showing
+            self.exportState = exportState
+        }
     }
 
     public enum Action: Equatable {
@@ -32,6 +37,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
                 }
             case let .setShowing(showing):
                 state.showing = showing
+                state.exportState = ExportFeature.State()
                 return .none
             default:
                 return .none
@@ -59,10 +65,11 @@ public struct AppFeatureView: View {
                 Button("View a Sample") {
                     viewStore.send(.load([URL(string: "https://mastodon.social/@harshil/109572736506622176")!]))
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(BigCapsuleButton())
                 PasteButtonThreadSafe(payloadType: URL.self) { urls in
                     viewStore.send(.load(urls))
                 }
+                .buttonStyle(BigCapsuleButton())
             }
             .sheet(isPresented: viewStore.binding(get: \.showing, send: AppFeature.Action.setShowing)) {
                 NavigationStack {

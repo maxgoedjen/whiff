@@ -1,6 +1,7 @@
 import ComposableArchitecture
-import XCTest
 import SwiftUI
+import XCTest
+@testable import TootSniffer
 @testable import WhiffFeatures
 
 @MainActor
@@ -14,7 +15,7 @@ final class AppFeatureTests: XCTestCase {
             initialState: AppFeature.State(),
             reducer: AppFeature()
                 .dependency(\.keyValueStorage, StubStorage())
-                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder)))
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.urlSession, .shared)
         )
     }
@@ -32,6 +33,17 @@ final class AppFeatureTests: XCTestCase {
     func testLoadOne() async throws {
         await store.send(.load([URL(string: "https://example.com")!])) {
             $0.showing = true
+        }
+    }
+
+    func testDismiss() async throws {
+        store = TestStore(
+            initialState: AppFeature.State(showing: true),
+            reducer: AppFeature()
+        )
+        await store.send(.setShowing(false)) {
+            $0.showing = false
+            $0.exportState = ExportFeature.State()
         }
     }
 
