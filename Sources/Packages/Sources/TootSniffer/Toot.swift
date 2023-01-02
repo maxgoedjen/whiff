@@ -11,7 +11,8 @@ public struct Toot: Equatable, Sendable, Codable, Identifiable {
     public var mediaAttachments: [MediaAttachment]
 
     public var allImages: [MediaAttachment] {
-        [MediaAttachment(id: "", url: account.avatar, meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)), blurhash: nil)] + mediaAttachments
+        return mediaAttachments +
+        [MediaAttachment(url: account.avatar)]
     }
 
     public var reply: Bool? {
@@ -36,6 +37,13 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
     public let blurhash: String?
     public var size: CGSize {
         CGSize(width: meta.original.width, height: meta.original.height)
+    }
+
+    fileprivate init(id: String? = nil, url: URL, meta: MediaAttachmentMeta = MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)), blurhash: String? = nil) {
+        self.id = id ?? url.absoluteString
+        self.url = url
+        self.meta = meta
+        self.blurhash = blurhash
     }
 
 }
