@@ -291,18 +291,21 @@ public struct ExportFeatureView: View {
                                         }
                                     }
                                 }
+                                .onAppear {
+                                    value.scrollTo(rootToot.id, anchor: UnitPoint(x: 0.5, y: 0.2))
+                                }
                                 .clipShape(RoundedRectangle(cornerRadius: 15))
                                 .overlay {
                                     RoundedRectangle(cornerRadius: 15)
                                     .stroke(.white.opacity(0.25), lineWidth: 3)
                                 }
                                 .padding()
-                                if viewStore.tootContext != nil {
+                                if let ancestors = viewStore.tootContext?.ancestors, !ancestors.isEmpty {
                                     // Empty view that on appear scrolls, to that if we load in context above the root toot, it doesn't suddenly jump to that.
                                     // Can't literally be EmptyView because that doesn't fire onAppear
                                     Spacer(minLength: 0)
                                         .onAppear {
-                                            value.scrollTo(rootToot.id, anchor: .top)
+                                            value.scrollTo(rootToot.id, anchor: UnitPoint(x: 0.5, y: 0.0375))
                                         }
                                 }
                                 Spacer(minLength: 100)
@@ -328,6 +331,8 @@ public struct ExportFeatureView: View {
                             }
                         }
                     }
+                    .navigationTitle("Toot from \(rootToot.account.displayName)")
+                    .navigationBarTitleDisplayMode(.inline)
                     .sheet(isPresented: viewStore.binding(get: \.showingSettings, send: ExportFeature.Action.tappedSettings)) {
                         SettingsFeatureView(store: store.scope(state: \.settings, action: ExportFeature.Action.settings))
                             .presentationDetents([.medium])
