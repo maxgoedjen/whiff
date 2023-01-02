@@ -8,12 +8,14 @@ struct TootView: View {
     let attributedContent: AttributedString?
     let settings: SettingsFeature.State
     let images: [URLKey: Image]
+    let padding: Double
 
-    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: Image], settings: SettingsFeature.State) {
+    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: Image], settings: SettingsFeature.State, padding: Double = 15) {
         self.toot = toot
         self.attributedContent = attributedContent
         self.images = images
         self.settings = settings
+        self.padding = padding
     }
 
     var content: some View {
@@ -66,6 +68,7 @@ struct TootView: View {
             case .fan:
                 HStack {
                     content
+                    Spacer(minLength: 0)
                     ZStack {
                         ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { idx, attachment in
                             ImageWrapperView(
@@ -77,8 +80,7 @@ struct TootView: View {
                             .frame(maxWidth: 50)
                             .border(.white, width: 1)
                             .shadow(radius: 5)
-                            .rotationEffect(Angle(degrees: Double(idx)) * 10)
-
+                            .rotationEffect(Angle(degrees: Double(idx)) * 10 * (idx % 2 == 0 ? 1 : -1))
                         }
                     }
                 }
@@ -94,9 +96,9 @@ struct TootView: View {
                     .font(.system(.footnote, design: .rounded, weight: .regular))
             }
         }
-        .padding()
+        .padding(padding)
+        .frame(maxWidth: .infinity)
         .background(settings.backgroundColor)
-        .cornerRadius(settings.roundCorners ? 15 : 0)
     }
 
 }

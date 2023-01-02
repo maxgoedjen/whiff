@@ -4,29 +4,40 @@ import SwiftUI
 
 public protocol TootSnifferProtocol: Sendable {
     func sniff(url: URL) async throws -> Toot
+    func sniffContext(url: URL) async throws -> TootContext
 }
 
 public final class TootSniffer: TootSnifferProtocol {
+
+    private enum Endpoint: String {
+        case status = ""
+        case context = "/context"
+    }
 
     public init() {
     }
 
     public func sniff(url: URL) async throws -> Toot {
-        let apiURL = try await constructMastodonAPIURL(url: url)
+        let apiURL = try await constructMastodonAPIURL(url: url, endpoint: .status)
         return try await loadToot(url: apiURL)
     }
 
-    func constructMastodonAPIURL(url: URL) async throws -> URL {
+    public func sniffContext(url: URL) async throws -> TootContext {
+        let apiURL = try await constructMastodonAPIURL(url: url, endpoint: .context)
+        return try await loadTootContext(url: apiURL)
+    }
+
+    private func constructMastodonAPIURL(url: URL, endpoint: Endpoint) async throws -> URL {
         guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let id = apiLink.path.split(separator: "/").last
-        else { throw NoLinkParameter() }
-        apiLink.path = "/api/v1/statuses/\(id)"
-        guard let final = apiLink.url else { throw NoLinkParameter() }
+        else { throw NoLinkParameterError() }
+        apiLink.path = "/api/v1/statuses/\(id)" + endpoint.rawValue
+        guard let final = apiLink.url else { throw NoLinkParameterError() }
         return final
     }
 
-    func loadToot(url: URL) async throws -> Toot {
-        let (data, _) = try await URLSession.shared.data(from: url)
+    private func loadToot(url: URL) async throws -> Toot {
+        let (data, response) = try await URLSession.shared.data(from: url)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .custom(dateDecoder)
@@ -34,7 +45,27 @@ public final class TootSniffer: TootSnifferProtocol {
             let raw = try decoder.decode(Toot.self, from: data)
             return try cleanToot(raw)
         } catch {
-            throw NotAMastadonPost()
+            if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+                throw NotAuthenticatedError()
+            }
+            throw NotAMastadonPostError()
+        }
+    }
+
+    private func loadTootContext(url: URL) async throws -> TootContext {
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        decoder.dateDecodingStrategy = .custom(dateDecoder)
+        do {
+            var raw = try decoder.decode(TootContext.self, from: data)
+            let cleanedAncestors = try raw.ancestors.map(cleanToot(_:))
+            let cleanedDescendants = try raw.descendants.map(cleanToot(_:))
+            raw.ancestors = cleanedAncestors
+            raw.descendants = cleanedDescendants
+            return raw
+        } catch {
+            throw NotAMastadonPostError()
         }
     }
 
@@ -72,12 +103,20 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
         fatalError("Unimplemented")
     }
 
+    public func sniffContext(url: URL) async throws -> TootContext {
+        fatalError("Unimplemented")
+    }
+
 }
 
-struct NotAMastadonPost: LocalizedError {
+struct NotAMastadonPostError: LocalizedError {
     let errorDescription: String? = "This isn't a Mastodon Post."
 }
 
-struct NoLinkParameter: LocalizedError {
+struct NoLinkParameterError: LocalizedError {
     let errorDescription: String? = "Unable to parse Toot."
+}
+
+struct NotAuthenticatedError: LocalizedError {
+    let errorDescription: String? = "This Toot requires authentication to view."
 }

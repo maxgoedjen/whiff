@@ -1,7 +1,9 @@
 import SwiftUI
 
-public struct Toot: Equatable, Sendable, Codable {
+public struct Toot: Equatable, Sendable, Codable, Identifiable {
 
+    public var id: String
+    private var inReplyTo: String?
     public var url: URL
     public var createdAt: Date
     public var content: String
@@ -10,6 +12,10 @@ public struct Toot: Equatable, Sendable, Codable {
 
     public var allImages: [MediaAttachment] {
         [MediaAttachment(id: "", url: account.avatar, meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)), blurhash: nil)] + mediaAttachments
+    }
+
+    public var reply: Bool? {
+        inReplyTo != nil
     }
 
 }
@@ -47,6 +53,26 @@ public struct MediaAttachmentSize: Equatable, Sendable, Codable {
 
 }
 
+public struct TootContext: Equatable, Sendable, Codable {
+
+    public var ancestors: [Toot]
+    public var descendants: [Toot]
+
+    init(ancestors: [Toot] = [], descendants: [Toot] = []) {
+        self.ancestors = ancestors
+        self.descendants = descendants
+    }
+
+    public var all: [Toot] {
+        ancestors + descendants
+    }
+
+    public var allImages: [MediaAttachment] {
+        all.flatMap(\.allImages)
+    }
+
+}
+
 public struct URLKey: Hashable, Sendable {
 
     public enum Kind: Hashable, Sendable {
@@ -66,6 +92,7 @@ public struct URLKey: Hashable, Sendable {
 public extension Toot {
 
     static let placeholder = Toot(
+        id: "",
         url: URL(string: "https://example.com")!,
         createdAt: .distantPast,
         content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
@@ -74,6 +101,7 @@ public extension Toot {
     )
 
     static let placeholderWithHTML = Toot(
+        id: "",
         url: URL(string: "https://example.com")!,
         createdAt: .distantPast,
         content: "Hello world. <a href=\"https://example.com\">Test</a>",
@@ -82,19 +110,20 @@ public extension Toot {
     )
 
     static let placeholderWithAttachments = Toot(
+        id: "",
         url: URL(string: "https://example.com")!,
         createdAt: .distantPast,
         content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
         account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
         mediaAttachments:
-            (0..<4).map {
-                MediaAttachment(
-                    id: $0.formatted(),
-                    url: URL(string: "https://example.com/\($0)")!,
-                    meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 1, height: 1)),
-                    blurhash: nil
-                )
-            }
+        (0..<4).map {
+            MediaAttachment(
+                id: $0.formatted(),
+                url: URL(string: "https://example.com/\($0)")!,
+                meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 1, height: 1)),
+                blurhash: nil
+            )
+        }
     )
 
 }

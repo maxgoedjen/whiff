@@ -10,4 +10,3 @@ public struct BigCapsuleButton: ButtonStyle {
             .clipShape(Capsule())
     }
 }
-

@@ -65,10 +65,11 @@ public struct AppFeatureView: View {
                 Button("View a Sample") {
                     viewStore.send(.load([URL(string: "https://mastodon.social/@harshil/109572736506622176")!]))
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(BigCapsuleButton())
                 PasteButtonThreadSafe(payloadType: URL.self) { urls in
                     viewStore.send(.load(urls))
                 }
+                .buttonStyle(BigCapsuleButton())
             }
             .sheet(isPresented: viewStore.binding(get: \.showing, send: AppFeature.Action.setShowing)) {
                 NavigationStack {
