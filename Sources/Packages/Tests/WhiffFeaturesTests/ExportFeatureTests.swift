@@ -43,24 +43,27 @@ final class ExportFeatureTests: XCTestCase {
         }
     }
 
-    // FIXME: This
     func testHTMLInToot() async throws {
-//        store = TestStore(
-//            initialState: ExportFeature.State(),
-//            reducer: ExportFeature()
-//                .dependency(\.keyValueStorage, StubStorage())
-//                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithHTML)))
-//                .dependency(\.urlSession, .shared)
-//        )
-//        await store.send(.requested(url: URL(string: "https://example.com")!))
-//        await store.receive(.settings(.load))
-//        await store.receive(.tootSniffCompleted(.success(.placeholderWithHTML))) {
-//            $0.toot = .placeholderWithHTML
-//            var attributed = try! AttributedString(markdown: "Hello world. ![Test](https://example.com)")
-//            let linkRange = attributed.range(of: "Test")!
-//            attributed[linkRange].foregroundColor = .blue
-//            $0.attributedContent = UncheckedSendable(attributed)
-//        }
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithHTML), .success(TootContext())))
+                .dependency(\.urlSession, .shared)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.receive(.settings(.load))
+        await store.receive(.tootSniffCompleted(.success(.placeholderWithHTML))) {
+            $0.toot = .placeholderWithHTML
+            $0.visibleContextIDs = Set([""])
+            var base = try! AttributedString(markdown: "Hello world. ![Test](https://example.com)")
+            base.presentationIntent = nil
+            let ns = NSMutableAttributedString(base)
+            let range = (ns.string as NSString).range(of: "Test")
+            let tint = UIColor(.blue)
+            ns.setAttributes([.foregroundColor: tint], range: range)
+            $0.attributedContent = [Toot.placeholderWithHTML.id: UncheckedSendable(AttributedString(ns))]
+        }
     }
 
     func testChangeColorSettingEvaluatesAttributedContent() async throws {
