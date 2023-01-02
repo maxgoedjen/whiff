@@ -1,7 +1,6 @@
 import BlurHashKit
 import SwiftUI
 import TootSniffer
-import IdentifiedCollections
 
 struct TootView: View {
 
