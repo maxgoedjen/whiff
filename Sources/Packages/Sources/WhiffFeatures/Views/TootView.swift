@@ -1,6 +1,7 @@
 import BlurHashKit
 import SwiftUI
 import TootSniffer
+import IdentifiedCollections
 
 struct TootView: View {
 
@@ -68,6 +69,7 @@ struct TootView: View {
             case .fan:
                 HStack {
                     content
+                    Spacer(minLength: 0)
                     ZStack {
                         ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { idx, attachment in
                             ImageWrapperView(
@@ -79,8 +81,7 @@ struct TootView: View {
                             .frame(maxWidth: 50)
                             .border(.white, width: 1)
                             .shadow(radius: 5)
-                            .rotationEffect(Angle(degrees: Double(idx)) * 10)
-
+                            .rotationEffect(Angle(degrees: Double(idx)) * 10 * (idx % 2 == 0 ? 1 : -1))
                         }
                     }
                 }
@@ -97,8 +98,8 @@ struct TootView: View {
             }
         }
         .padding(padding)
+        .frame(maxWidth: .infinity)
         .background(settings.backgroundColor)
-        .cornerRadius(settings.roundCorners ? 15 : 0)
     }
 
 }

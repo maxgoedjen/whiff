@@ -144,8 +144,9 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                     throw UnableToRender()
                 }
 
-                let view = VStack(spacing: 0) {
-                    ForEach(state.allToots) { toot in
+                let view = VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(zip(state.allToots, state.allToots.indices)), id: \.0.id) { item in
+                        let (toot, idx) = item
                         if state.visibleContextIDs.contains(toot.id) {
                             TootView(
                                 toot: toot,
@@ -155,8 +156,15 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                             )
                             .frame(width: 400)
                         }
+                        if idx < (state.allToots.count - 1) {
+                            // Divider doesn't work well in ImageRenderer
+                            Rectangle()
+                                .foregroundColor(.gray.opacity(0.25))
+                                .frame(height: 2)
+                        }
                     }
                 }
+                    .background(state.settings.backgroundColor)
                     .clipShape(RoundedRectangle(cornerRadius: state.settings.roundCorners ? 15 : 0))
 
                 let renderer =
@@ -262,7 +270,8 @@ public struct ExportFeatureView: View {
                         ScrollViewReader { value in
                             ScrollView {
                                 VStack(spacing: 0) {
-                                    ForEach(viewStore.allToots) { toot in
+                                    ForEach(Array(zip(viewStore.allToots, viewStore.allToots.indices)), id: \.0.id) { item in
+                                        let (toot, idx) = item
                                         TootView(
                                             toot: toot,
                                             attributedContent: viewStore.attributedContent[toot.id]?.value,
@@ -274,8 +283,11 @@ public struct ExportFeatureView: View {
                                             viewStore.send(.tappedContextToot(toot), animation: .easeInOut(duration: 0.2))
                                         }
                                         .id(toot.id)
-                                        if viewStore.allToots.count > 1 {
-                                            Divider()
+                                        if idx < (viewStore.allToots.count - 1) {
+                                            // Divider doesn't work well in ImageRenderer
+                                            Rectangle()
+                                                .foregroundColor(.gray.opacity(0.25))
+                                                .frame(height: 2)
                                         }
                                     }
                                 }
@@ -286,6 +298,8 @@ public struct ExportFeatureView: View {
                                 }
                                 .padding()
                                 if viewStore.tootContext != nil {
+                                    // Empty view that on appear scrolls, to that if we load in context above the root toot, it doesn't suddenly jump to that.
+                                    // Can't literally be EmptyView because that doesn't fire onAppear
                                     Spacer(minLength: 0)
                                         .onAppear {
                                             value.scrollTo(rootToot.id, anchor: .top)
@@ -331,13 +345,13 @@ public struct ExportFeatureView: View {
                             .cornerRadius(15)
                             .overlay {
                                 RoundedRectangle(cornerRadius: 15)
-                                    .stroke(.white.opacity(0.5), lineWidth: 3)
+                                    .stroke(.white.opacity(0.25), lineWidth: 3)
                             }
                             .padding()
-                        Text("Loading Toot")
-                        ProgressView()
-                            .progressViewStyle(.circular)
+                        Spacer()
                     }
+                    .navigationTitle("Loading Toot")
+                    .navigationBarTitleDisplayMode(.inline)
                 }
             }
             .toolbar {
