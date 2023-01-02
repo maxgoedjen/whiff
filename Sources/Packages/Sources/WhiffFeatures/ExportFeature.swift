@@ -19,6 +19,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         public var showingSettings = false
         public var settings = SettingsFeature.State()
         public var images: [URLKey: Image] = [:]
+        public var visibleContextIDs: Set<Toot.ID> = []
+
+        public var allToots: [Toot] {
+            (tootContext?.ancestors ?? []) + [toot].compactMap({ $0 }) + (tootContext?.descendants ?? [])
+        }
 
         public init() {
         }
@@ -29,6 +34,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         case tootSniffCompleted(TaskResult<Toot>)
         case tootSniffContextCompleted(TaskResult<TootContext>)
         case loadImageCompleted(TaskResult<ImageLoadResponse>)
+        case tappedContextToot(Toot)
         case tappedSettings(Bool)
         case settings(SettingsFeature.Action)
         case rerendered(TaskResult<Image>)
@@ -62,6 +68,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             })
         case let .tootSniffCompleted(.success(toot)):
             state.toot = toot
+            state.visibleContextIDs.insert(toot.id)
             state.errorMessage = nil
             return parseTootAndLoadAttachments(toot: toot, state: &state)
         case let .tootSniffCompleted(.failure(error)):
@@ -86,6 +93,14 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             return .none
         case let .loadImageCompleted(.failure(error)):
             print(error)
+            return .none
+        case let .tappedContextToot(toot):
+            guard toot != state.toot else { return .none }
+            if state.visibleContextIDs.contains(toot.id) {
+                state.visibleContextIDs.remove(toot.id)
+            } else {
+                state.visibleContextIDs.insert(toot.id)
+            }
             return .none
         case let .tappedSettings(showing):
             state.showingSettings = showing
@@ -240,14 +255,14 @@ public struct ExportFeatureView: View {
     public var body: some View {
         WithViewStore(store) { viewStore in
             Group {
-                if let toot = viewStore.toot {
+                if let rootToot = viewStore.toot {
                     ZStack {
                         ScrollViewReader { value in
                             ScrollView {
-                                ForEach(viewStore.tootContext?.ancestors ?? []) { ancestor in
+                                ForEach(viewStore.allToots) { toot in
                                     TootView(
-                                        toot: ancestor,
-                                        attributedContent: viewStore.attributedContent[ancestor.id]?.value,
+                                        toot: toot,
+                                        attributedContent: viewStore.attributedContent[toot.id]?.value,
                                         images: viewStore.images,
                                         settings: viewStore.settings
                                     )
@@ -257,31 +272,17 @@ public struct ExportFeatureView: View {
                                             .stroke(.white.opacity(0.5), lineWidth: 3)
                                     }
                                     .padding()
-                                }
-                                .onAppear {
-                                    value.scrollTo("Canonical", anchor: .top)
-                                }
-                                TootView(toot: toot, attributedContent: viewStore.attributedContent[toot.id]?.value, images: viewStore.images, settings: viewStore.settings)
-                                    .cornerRadius(15)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .stroke(.white.opacity(0.5), lineWidth: 3)
+                                    .opacity(viewStore.visibleContextIDs.contains(toot.id) ? 1 : 0.2)
+                                    .onTapGesture {
+                                        viewStore.send(.tappedContextToot(toot))
                                     }
-                                    .padding()
-                                    .id("Canonical")
-                                ForEach(viewStore.tootContext?.descendants ?? []) { descendant in
-                                    TootView(
-                                        toot: descendant,
-                                        attributedContent: viewStore.attributedContent[descendant.id]?.value,
-                                        images: viewStore.images,
-                                        settings: viewStore.settings
-                                    )
-                                    .cornerRadius(15)
-                                    .overlay {
-                                        RoundedRectangle(cornerRadius: 15)
-                                            .stroke(.white.opacity(0.5), lineWidth: 3)
-                                    }
-                                    .padding()
+                                    .id(toot.id)
+                                }
+                                if viewStore.tootContext != nil {
+                                    Spacer(minLength: 0)
+                                        .onAppear {
+                                            value.scrollTo(rootToot.id, anchor: .top)
+                                        }
                                 }
                                 Spacer(minLength: 100)
                             }
@@ -293,7 +294,7 @@ public struct ExportFeatureView: View {
                             Spacer()
                             if let rendered = viewStore.rendered {
                                 if case .afterImage = viewStore.settings.linkStyle {
-                                    ShareLink(item: rendered, message: Text(toot.url.absoluteString), preview: SharePreview("Rendered Toot"))
+                                    ShareLink(item: rendered, message: Text(rootToot.url.absoluteString), preview: SharePreview("Rendered Toot"))
                                         .buttonStyle(BigCapsuleButton())
                                 } else {
                                     ShareLink(item: rendered, preview: SharePreview("Rendered Toot"))

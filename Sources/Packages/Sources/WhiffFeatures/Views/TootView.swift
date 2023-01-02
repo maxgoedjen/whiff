@@ -8,12 +8,14 @@ struct TootView: View {
     let attributedContent: AttributedString?
     let settings: SettingsFeature.State
     let images: [URLKey: Image]
+    let padding: Double
 
-    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: Image], settings: SettingsFeature.State) {
+    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: Image], settings: SettingsFeature.State, padding: Double = 15) {
         self.toot = toot
         self.attributedContent = attributedContent
         self.images = images
         self.settings = settings
+        self.padding = padding
     }
 
     var content: some View {
@@ -94,7 +96,7 @@ struct TootView: View {
                     .font(.system(.footnote, design: .rounded, weight: .regular))
             }
         }
-        .padding()
+        .padding(padding)
         .background(settings.backgroundColor)
         .cornerRadius(settings.roundCorners ? 15 : 0)
     }
