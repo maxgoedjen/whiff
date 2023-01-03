@@ -8,7 +8,9 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     @Dependency(\.tootSniffer) var tootSniffer
     @Dependency(\.imageRenderer) var imageRenderer
+    @Dependency(\.imageLoader) var imageLoader
     @Dependency(\.urlSession) var urlSession
+    @Dependency(\.mainQueue) var mainQueue
 
     public struct State: Equatable, Sendable {
         public var toot: Toot?
@@ -138,6 +140,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                     }
                 )
             }
+            .debounce(id: "rerenderReduce", for: 0.01, scheduler: mainQueue)
         default:
             return .none
         }
@@ -164,9 +167,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             effect = effect.merge(with: EffectTask.task {
                 .loadImageCompleted(await TaskResult {
                     let key = URLKey(url, .remote)
-                    let (data, _) = try await urlSession.data(from: url)
-                    guard let image = UIImage(data: data) else { throw UnableToParseImageError() }
-                    return ImageLoadResponse(key, Image(uiImage: image))
+                    return ImageLoadResponse(key, try await imageLoader.loadImage(at: url))
                 })
             })
         }
@@ -208,6 +209,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
         internal init(_ url: URLKey, _ image: Image) {
             self.url = url
+            self.image = image
+        }
+
+        internal init(_ remoteURLString: String, _ image: Image) {
+            self.url = URLKey(URL(string: remoteURLString)!, .remote)
             self.image = image
         }
 

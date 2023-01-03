@@ -16,6 +16,9 @@ final class AppFeatureTests: XCTestCase {
             reducer: AppFeature()
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.mainQueue, .main)
                 .dependency(\.urlSession, .shared)
         )
     }

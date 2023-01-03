@@ -55,10 +55,5 @@ public final class UnimplementedImageRenderer: ImageRendererProtocol {
 
 }
 
-struct UnableToParseImageError: Error, Equatable {
-    init() {
-    }
-}
-
 struct UnableToRenderError: Error, Equatable {
 }

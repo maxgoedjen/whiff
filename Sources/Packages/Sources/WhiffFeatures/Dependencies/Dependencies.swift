@@ -46,6 +46,20 @@ public extension DependencyValues {
     }
 }
 
+private enum ImageLoaderKey: DependencyKey {
+    static let liveValue: ImageLoaderProtocol = ImageLoaderURLSession()
+    #if DEBUG
+    static let testValue: ImageLoaderProtocol = UnimplementedImageLoader()
+    #endif
+}
+
+public extension DependencyValues {
+    var imageLoader: ImageLoaderProtocol {
+        get { self[ImageLoaderKey.self] }
+        set { self[ImageLoaderKey.self] = newValue }
+    }
+}
+
 private enum DismissExtensionKey: DependencyKey {
     @MainActor static let liveValue: @MainActor @Sendable (Error?) -> Void = { _ in }
     #if DEBUG

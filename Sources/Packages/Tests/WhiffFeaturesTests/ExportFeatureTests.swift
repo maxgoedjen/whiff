@@ -16,8 +16,9 @@ final class ExportFeatureTests: XCTestCase {
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
-                .dependency(\.imageRenderer, StubImageRenderer(Image(systemName: "person")))
-                .dependency(\.urlSession, .shared)
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.mainQueue, .main)
         )
     }
 
@@ -33,8 +34,9 @@ final class ExportFeatureTests: XCTestCase {
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
-                .dependency(\.imageRenderer, StubImageRenderer(Image(systemName: "person")))
-                .dependency(\.urlSession, .shared)
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.mainQueue, .main)
         )
         await store.send(.requested(url: URL(string: "https://example.com")!))
         await store.receive(.settings(.load))
@@ -51,8 +53,9 @@ final class ExportFeatureTests: XCTestCase {
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithHTML), .success(TootContext())))
-                .dependency(\.imageRenderer, StubImageRenderer(Image(systemName: "person")))
-                .dependency(\.urlSession, .shared)
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.mainQueue, .main)
         )
         await store.send(.requested(url: URL(string: "https://example.com")!))
         await store.receive(.settings(.load))
@@ -73,14 +76,14 @@ final class ExportFeatureTests: XCTestCase {
     }
 
     func testChangingLinkColorRegeneratesAttributed() async throws {
-        let image = Image(systemName: "person")
         store = TestStore(
             initialState: ExportFeature.State(),
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithHTML), .success(TootContext())))
-                .dependency(\.imageRenderer, StubImageRenderer(image))
-                .dependency(\.urlSession, .shared)
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.mainQueue, .main)
         )
         await store.send(.requested(url: URL(string: "https://example.com")!))
         await store.receive(.settings(.load))
@@ -100,11 +103,14 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
             $0.tootContext = TootContext()
         }
-        await store.receive(.rerendered(.success(image))) {
-            $0.rendered = image
+        
+        await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
+            $0.images[.sampleAvatar] = .sampleAvatar
         }
-        await store.receive(.loadImageCompleted(.failure(UnableToParseImageError())))
-        await store.receive(.rerendered(.success(image)))
+
+        await store.receive(.rerendered(.success(.sampleRendered))) {
+            $0.rendered = .sampleRendered
+        }
         let red = Color(red: 1, green: 0, blue: 0)
         await store.send(.settings(.linkColorModified(red))) {
             $0.settings.linkColor = red
@@ -119,16 +125,43 @@ final class ExportFeatureTests: XCTestCase {
             $0.attributedContent = [Toot.placeholderWithHTML.id: UncheckedSendable(AttributedString(nsAttributed))]
         }
         await store.receive(.settings(.save))
-        await store.receive(.rerendered(.success(image)))
+        await store.receive(.rerendered(.success(.sampleRendered)))
     }
 
     func testSettingChangeRerenders() async throws {
-//        await store.send(.tootSniffCompleted(.success(.placeholder))) {
-//            $0.toot = .placeholder
-//            $0.visibleContextIDs = [Toot.placeholder.id]
-//        }
-//        await store.receive(.rerendered(.success(Image(systemName: "person"))))
+        await store.send(.tootSniffCompleted(.success(.placeholder))) {
+            $0.toot = .placeholder
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholder.content))]
+            $0.visibleContextIDs = [Toot.placeholder.id]
+        }
+        await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
+            $0.images[.sampleAvatar] = .sampleAvatar
+        }
+        await store.receive(.rerendered(.success(.sampleRendered))) {
+            $0.rendered = .sampleRendered
+        }
+        await store.send(.settings(.linkStyleChanged(.none))) {
+            $0.settings.linkStyle = .none
+        }
+        await store.receive(.settings(.save))
+        await store.receive(.rerendered(.success(.sampleRendered)))
     }
 
 }
 
+extension Image {
+    static var sampleAvatar: Image { Image(systemName: "person") }
+    static var sampleRendered: Image { Image(systemName: "square.and.arrow.up") }
+}
+
+extension URLKey {
+    static var sampleAvatar: URLKey {
+        URLKey("https://example.com/avatar")
+    }
+}
+
+extension ExportFeature.ImageLoadResponse {
+    static var sampleAvatar: ExportFeature.ImageLoadResponse {
+        .init(.sampleAvatar, .sampleAvatar)
+    }
+}

@@ -95,6 +95,11 @@ public struct URLKey: Hashable, Sendable {
         self.url = url
         self.kind = kind
     }
+
+    init(_ string: String) {
+        self.url = URL(string: string)!
+        self.kind = .remote
+    }
 }
 
 public extension Toot {
