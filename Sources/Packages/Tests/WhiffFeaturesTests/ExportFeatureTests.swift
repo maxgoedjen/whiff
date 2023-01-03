@@ -147,6 +147,89 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.rerendered(.success(.sampleRendered)))
     }
 
+    func testLoadFailureShowsMessage() async throws {
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.failure(NotAMastadonPostError()), .failure(NotAMastadonPostError())))
+                .dependency(\.imageRenderer, StubImageRenderer(NotAMastadonPostError()))
+                .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.receive(.settings(.load))
+        await store.receive(.tootSniffCompleted(.failure(NotAMastadonPostError()))) {
+            $0.toot = nil
+            $0.errorMessage = NotAMastadonPostError().localizedDescription
+        }
+    }
+
+    func testLoadFailureWithoutMessageShowsFallback() async throws {
+        struct BadError: Error, Equatable {}
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.failure(BadError()), .failure(BadError())))
+                .dependency(\.imageRenderer, StubImageRenderer(NotAMastadonPostError()))
+                .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.receive(.settings(.load))
+        await store.receive(.tootSniffCompleted(.failure(BadError()))) {
+            $0.toot = nil
+            $0.errorMessage = "Unknown Error"
+        }
+    }
+
+    func testContextFailureStillShowsBase() async throws {
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .failure(NotAMastadonPostError())))
+                .dependency(\.imageRenderer, StubImageRenderer(NotAMastadonPostError()))
+                .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.receive(.settings(.load))
+        await store.receive(.tootSniffCompleted(.success(.placeholder))) {
+            $0.toot = .placeholder
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholder.content))]
+            $0.visibleContextIDs = Set([""])
+        }
+        await store.receive(.tootSniffContextCompleted(.failure(NotAMastadonPostError())))
+    }
+
+    func testImageLoadFailureStillRenders() async throws {
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.receive(.settings(.load))
+        await store.receive(.tootSniffCompleted(.success(.placeholder))) {
+            $0.toot = .placeholder
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholder.content))]
+            $0.visibleContextIDs = Set([""])
+        }
+        await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
+            $0.tootContext = TootContext()
+        }
+        await store.receive(.loadImageCompleted(.failure(URLError(.fileDoesNotExist))))
+        await store.receive(.rerendered(.success(.sampleRendered))) {
+            $0.rendered = .sampleRendered
+        }
+    }
+
 }
 
 extension Image {
