@@ -1,11 +1,11 @@
 import BlurHashKit
-@preconcurrency import SwiftUI
+import SwiftUI
 import TootSniffer
 
 struct TooterView: View {
 
     let tooter: Tooter
-    let images: [URLKey: Image]
+    let images: [URLKey: ImageEquatable]
     let settings: SettingsFeature.State
 
     var body: some View {
@@ -13,6 +13,7 @@ struct TooterView: View {
             Group {
                 if let image = images[URLKey(tooter.avatar, .remote)] {
                     image
+                        .image.value // FIXME: Gross
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                 } else {
