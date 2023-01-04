@@ -5,4 +5,5 @@ Generates nice images of Mastodon posts.
 
 ## Open Source & Redistribution
 
-Whiff is a learning project for [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture). While the project is [MIT-licensed](LICENSE), I'd ask that you please do not redistribute this app as-is on the App Store.
+Whiff is a learning project for [The Composable Architecture](https://github.com/pointfreeco/swift-composable-architecture).
+While the project is [MIT-licensed](LICENSE), I'd ask that you please do not redistribute this app as-is on the App Store.
