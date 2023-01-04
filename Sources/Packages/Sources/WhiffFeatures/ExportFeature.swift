@@ -34,7 +34,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             self.toot = toot
             self.tootContext = tootContext
             if let toot {
-                self.visibleContextIDs = [toot.id]
+                visibleContextIDs = [toot.id]
             }
         }
     }
@@ -201,7 +201,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         nsAttributed.enumerateAttribute(.link, in: fullRange) { element, range, _ in
             guard element != nil else { return }
             nsAttributed.setAttributes([
-                .foregroundColor: uiLinkColor
+                .foregroundColor: uiLinkColor,
             ], range: range)
         }
 
@@ -221,12 +221,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         }
 
         internal init(_ remoteURLString: String, _ image: ImageEquatable) {
-            self.url = URLKey(URL(string: remoteURLString)!, .remote)
+            url = URLKey(URL(string: remoteURLString)!, .remote)
             self.image = image
         }
 
     }
-
 
 }
 

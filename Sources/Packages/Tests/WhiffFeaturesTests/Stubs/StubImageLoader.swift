@@ -8,13 +8,13 @@ public final actor StubImageLoader: ImageLoaderProtocol, Sendable {
     private var pendingLoad: [URL]
 
     init(_ image: ImageEquatable, loadOrder: [URL] = []) {
-        self.result = .success(image)
-        self.pendingLoad = loadOrder
+        result = .success(image)
+        pendingLoad = loadOrder
     }
 
     init(_ error: Error, loadOrder: [URL] = []) {
         result = .failure(error)
-        self.pendingLoad = loadOrder
+        pendingLoad = loadOrder
     }
 
     public func loadImage(at url: URL) async throws -> ImageEquatable {

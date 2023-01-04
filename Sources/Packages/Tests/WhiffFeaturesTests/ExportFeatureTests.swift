@@ -1,7 +1,7 @@
+import BlurHashKit
 import ComposableArchitecture
 import SwiftUI
 import XCTest
-import BlurHashKit
 @testable import TootSniffer
 @testable import WhiffFeatures
 
@@ -106,14 +106,14 @@ final class ExportFeatureTests: XCTestCase {
             let tint = UIColor(.blue)
             let range = (nsAttributed.string as NSString).range(of: "Test")
             nsAttributed.setAttributes([
-                .foregroundColor: tint
+                .foregroundColor: tint,
             ], range: range)
             $0.attributedContent = [Toot.placeholderWithHTML.id: UncheckedSendable(AttributedString(nsAttributed))]
         }
         await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
             $0.tootContext = TootContext()
         }
-        
+
         await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
             $0.images[.sampleAvatar] = .sampleAvatar
         }
@@ -130,7 +130,7 @@ final class ExportFeatureTests: XCTestCase {
             let tint = UIColor(red)
             let range = (nsAttributed.string as NSString).range(of: "Test")
             nsAttributed.setAttributes([
-                .foregroundColor: tint
+                .foregroundColor: tint,
             ], range: range)
             $0.attributedContent = [Toot.placeholderWithHTML.id: UncheckedSendable(AttributedString(nsAttributed))]
         }
@@ -176,7 +176,8 @@ final class ExportFeatureTests: XCTestCase {
     }
 
     func testLoadFailureWithoutMessageShowsFallback() async throws {
-        struct BadError: Error, Equatable {}
+        struct BadError: Error, Equatable {
+        }
         store = TestStore(
             initialState: ExportFeature.State(),
             reducer: ExportFeature()
@@ -348,7 +349,9 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.tootSniffContextCompleted(.success(context))) {
             $0.tootContext = context
             $0.attributedContent[Toot.placeholderWithAttachmentName("ancestor").id] = UncheckedSendable(AttributedString(Toot.placeholderWithAttachmentName("ancestor").content))
-            $0.attributedContent[Toot.placeholderWithAttachmentName("descendant").id] = UncheckedSendable(AttributedString(Toot.placeholderWithAttachmentName("descendant").content))
+            $0
+                .attributedContent[Toot.placeholderWithAttachmentName("descendant").id] =
+                UncheckedSendable(AttributedString(Toot.placeholderWithAttachmentName("descendant").content))
             $0.images = blurhashes
         }
         await store.receive(.loadImageCompleted(.success(.loadResponse("root_avatar")))) {
@@ -421,7 +424,9 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.tootSniffContextCompleted(.success(context))) {
             $0.tootContext = context
             $0.attributedContent[Toot.placeholderWithAttachmentName("ancestor").id] = UncheckedSendable(AttributedString(Toot.placeholderWithAttachmentName("ancestor").content))
-            $0.attributedContent[Toot.placeholderWithAttachmentName("descendant").id] = UncheckedSendable(AttributedString(Toot.placeholderWithAttachmentName("descendant").content))
+            $0
+                .attributedContent[Toot.placeholderWithAttachmentName("descendant").id] =
+                UncheckedSendable(AttributedString(Toot.placeholderWithAttachmentName("descendant").content))
             $0.images[URLKey("https://example.com/attachments/root", .blurhash)] = .sampleBlurhash
             $0.images[URLKey("https://example.com/attachments/ancestor", .blurhash)] = .sampleBlurhash
             $0.images[URLKey("https://example.com/attachments/descendant", .blurhash)] = .sampleBlurhash
@@ -432,10 +437,10 @@ final class ExportFeatureTests: XCTestCase {
     func testSelection() async throws {
         store = TestStore(
             initialState: ExportFeature.State(toot: .placeholder, tootContext:
-                                                TootContext(
-                                                    ancestors: [.placeholderWithAttachmentName("ancestor")],
-                                                    descendants: [.placeholderWithAttachmentName("descendant")]
-                                                           )),
+                TootContext(
+                    ancestors: [.placeholderWithAttachmentName("ancestor")],
+                    descendants: [.placeholderWithAttachmentName("descendant")]
+                )),
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
@@ -464,7 +469,7 @@ final class ExportFeatureTests: XCTestCase {
 
 extension ImageEquatable {
     static var sampleAvatar: ImageEquatable { ImageEquatable(image: Image(systemName: "person"), equatableValue: "avatar") }
-    static var sampleRendered: ImageEquatable { ImageEquatable(image: Image(systemName: "person"), equatableValue: "rendered")}
+    static var sampleRendered: ImageEquatable { ImageEquatable(image: Image(systemName: "person"), equatableValue: "rendered") }
     static var sampleBlurhash: ImageEquatable {
         ImageEquatable(uiImage: BlurHash(string: "LEHV6nWB2yk8pyo0adR*.7kCMdnj")!.image(size: CGSize(width: 10, height: 10))!, equatableValue: "LEHV6nWB2yk8pyo0adR*.7kCMdnj")
     }

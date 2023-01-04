@@ -11,8 +11,8 @@ public struct Toot: Equatable, Sendable, Codable, Identifiable {
     public var mediaAttachments: [MediaAttachment]
 
     public var allImages: [MediaAttachment] {
-        return mediaAttachments +
-        [MediaAttachment(url: account.avatar)]
+        mediaAttachments +
+            [MediaAttachment(url: account.avatar)]
     }
 
     public var reply: Bool? {
@@ -39,7 +39,9 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
         CGSize(width: meta.original.width, height: meta.original.height)
     }
 
-    fileprivate init(id: String? = nil, url: URL, meta: MediaAttachmentMeta = MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)), blurhash: String? = nil) {
+    fileprivate init(id: String? = nil, url: URL, meta: MediaAttachmentMeta = MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+                     blurhash: String? = nil)
+    {
         self.id = id ?? url.absoluteString
         self.url = url
         self.meta = meta
@@ -97,7 +99,7 @@ public struct URLKey: Hashable, Sendable {
     }
 
     init(_ string: String, _ kind: Kind = .remote) {
-        self.url = URL(string: string)!
+        url = URL(string: string)!
         self.kind = kind
     }
 }
@@ -148,11 +150,11 @@ public extension Toot {
             account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/\(attachmentName)_avatar")!),
             mediaAttachments: [
                 MediaAttachment(
-                id: attachmentName,
-                url: URL(string: "https://example.com/attachments/\(attachmentName)")!,
-                meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
-                blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
-            )
+                    id: attachmentName,
+                    url: URL(string: "https://example.com/attachments/\(attachmentName)")!,
+                    meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+                    blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
+                ),
             ]
         )
     }
