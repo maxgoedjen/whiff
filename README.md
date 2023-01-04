@@ -1,8 +1,7 @@
 # Whiff
 Generates nice images of Mastodon posts.
 
-![Screenshot of Whiff UI](https://user-images.githubusercontent.com/342665/210529619-a93591e2-783d-4f0a-810c-3bd34d7dca76.png)
-![Screenshot of Whiff Configuration page](https://user-images.githubusercontent.com/342665/210529654-c757e6fd-c166-4dbe-ae6f-73708e8d3db3.png)
+<img src="https://user-images.githubusercontent.com/342665/210529619-a93591e2-783d-4f0a-810c-3bd34d7dca76.png" width="350" alt="Screenshot of Whiff preview page" /><img src="https://user-images.githubusercontent.com/342665/210529654-c757e6fd-c166-4dbe-ae6f-73708e8d3db3.png" width="350" alt="Screenshot of Whiff configuration page" />
 
 ## Open Source & Redistribution
 
