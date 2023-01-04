@@ -247,51 +247,62 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithAttachments), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
-                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar, loadOrder: [
+                    "https://example.com/avatar",
+                    "https://example.com/3",
+                    "https://example.com/2",
+                    "https://example.com/1",
+                    "https://example.com/0",
+                ].map { URL(string: $0)! }
+                                                          ))
                 .dependency(\.mainQueue, .main)
         )
         await store.send(.requested(url: URL(string: "https://example.com")!))
         await store.receive(.settings(.load))
+        let blurhashes: [URLKey: ImageEquatable] = [
+            URLKey("https://example.com/0", .blurhash): .sampleBlurhash,
+            URLKey("https://example.com/1", .blurhash): .sampleBlurhash,
+            URLKey("https://example.com/2", .blurhash): .sampleBlurhash,
+            URLKey("https://example.com/3", .blurhash): .sampleBlurhash,
+        ]
         await store.receive(.tootSniffCompleted(.success(.placeholderWithAttachments))) {
             $0.toot = .placeholderWithAttachments
             $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholderWithAttachments.content))]
             $0.visibleContextIDs = Set(["root"])
+            $0.images = blurhashes
         }
         await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
             $0.tootContext = TootContext()
         }
         await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
-            $0.images = [URLKey("https://example.com/avatar") : .sampleAvatar]
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
         }
         await store.receive(.loadImageCompleted(.success(.loadResponse(3)))) {
-            $0.images = [
-                URLKey("https://example.com/avatar") : .sampleAvatar,
-                URLKey("https://example.com/3") : .sampleAvatar
-            ]
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/3")] = .sampleAvatar
         }
         await store.receive(.loadImageCompleted(.success(.loadResponse(2)))) {
-            $0.images = [
-                URLKey("https://example.com/avatar") : .sampleAvatar,
-                URLKey("https://example.com/3") : .sampleAvatar,
-                URLKey("https://example.com/2") : .sampleAvatar
-            ]
-        }
-        await store.receive(.loadImageCompleted(.success(.loadResponse(0)))) {
-            $0.images = [
-                URLKey("https://example.com/avatar") : .sampleAvatar,
-                URLKey("https://example.com/3") : .sampleAvatar,
-                URLKey("https://example.com/2") : .sampleAvatar,
-                URLKey("https://example.com/0") : .sampleAvatar
-            ]
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/3")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/2")] = .sampleAvatar
         }
         await store.receive(.loadImageCompleted(.success(.loadResponse(1)))) {
-            $0.images = [
-                URLKey("https://example.com/avatar") : .sampleAvatar,
-                URLKey("https://example.com/3") : .sampleAvatar,
-                URLKey("https://example.com/2") : .sampleAvatar,
-                URLKey("https://example.com/1") : .sampleAvatar,
-                URLKey("https://example.com/0") : .sampleAvatar
-            ]
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/3")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/2")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/1")] = .sampleAvatar
+        }
+        await store.receive(.loadImageCompleted(.success(.loadResponse(0)))) {
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/3")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/2")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/1")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/0")] = .sampleAvatar
         }
         await store.receive(.rerendered(.success(.sampleRendered))) {
             $0.rendered = .sampleRendered

@@ -5,22 +5,25 @@ import WhiffFeatures
 public final actor StubImageLoader: ImageLoaderProtocol, Sendable {
 
     let result: Result<ImageEquatable, Error>
-    private var responseDelay: TimeInterval
-    private var currentDelay: TimeInterval = 0
+    private var pendingLoad: [URL]
 
-    init(_ image: ImageEquatable, responseDelay: TimeInterval = 0.001) {
+    init(_ image: ImageEquatable, loadOrder: [URL] = []) {
         self.result = .success(image)
-        self.responseDelay = responseDelay
+        self.pendingLoad = loadOrder
     }
 
-    init(_ error: Error, responseDelay: TimeInterval = 0.001) {
+    init(_ error: Error, loadOrder: [URL] = []) {
         result = .failure(error)
-        self.responseDelay = responseDelay
+        self.pendingLoad = loadOrder
     }
 
     public func loadImage(at url: URL) async throws -> ImageEquatable {
-        currentDelay += responseDelay
-        try await Task.sleep(for: .seconds(responseDelay))
+        if !pendingLoad.isEmpty {
+            while !pendingLoad.isEmpty && pendingLoad.first != url {
+                try await Task.sleep(for: .milliseconds(1))
+            }
+            pendingLoad.removeFirst()
+        }
         return try result.get()
     }
 
