@@ -19,7 +19,7 @@ public final actor StubImageLoader: ImageLoaderProtocol, Sendable {
 
     public func loadImage(at url: URL) async throws -> ImageEquatable {
         if !pendingLoad.isEmpty {
-            while !pendingLoad.isEmpty && pendingLoad.first != url {
+            while pendingLoad.first != url {
                 try await Task.sleep(for: .milliseconds(1))
             }
             pendingLoad.removeFirst()
