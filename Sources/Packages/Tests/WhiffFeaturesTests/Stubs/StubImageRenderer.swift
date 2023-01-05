@@ -4,18 +4,18 @@ import WhiffFeatures
 
 public final class StubImageRenderer: ImageRendererProtocol, Sendable {
 
-    let result: Result<UncheckedSendable<Image>, Error>
+    let result: Result<ImageEquatable, Error>
 
-    init(_ image: Image) {
-        self.result = .success(UncheckedSendable(image))
+    init(_ image: ImageEquatable, equatableValue: some Equatable = "rendered") {
+        result = .success(image)
     }
 
     init(_ error: Error) {
         result = .failure(error)
     }
 
-    public func render(state: ExportFeature.State) async throws -> Image {
-        try result.get().value
+    public func render(state: ExportFeature.State) async throws -> ImageEquatable {
+        try result.get()
     }
 
 }

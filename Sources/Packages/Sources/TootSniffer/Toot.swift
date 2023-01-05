@@ -11,8 +11,8 @@ public struct Toot: Equatable, Sendable, Codable, Identifiable {
     public var mediaAttachments: [MediaAttachment]
 
     public var allImages: [MediaAttachment] {
-        return mediaAttachments +
-        [MediaAttachment(url: account.avatar)]
+        mediaAttachments +
+            [MediaAttachment(url: account.avatar)]
     }
 
     public var reply: Bool? {
@@ -39,7 +39,9 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
         CGSize(width: meta.original.width, height: meta.original.height)
     }
 
-    fileprivate init(id: String? = nil, url: URL, meta: MediaAttachmentMeta = MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)), blurhash: String? = nil) {
+    fileprivate init(id: String? = nil, url: URL, meta: MediaAttachmentMeta = MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+                     blurhash: String? = nil)
+    {
         self.id = id ?? url.absoluteString
         self.url = url
         self.meta = meta
@@ -96,16 +98,16 @@ public struct URLKey: Hashable, Sendable {
         self.kind = kind
     }
 
-    init(_ string: String) {
-        self.url = URL(string: string)!
-        self.kind = .remote
+    init(_ string: String, _ kind: Kind = .remote) {
+        url = URL(string: string)!
+        self.kind = kind
     }
 }
 
 public extension Toot {
 
     static let placeholder = Toot(
-        id: "",
+        id: "root",
         url: URL(string: "https://example.com")!,
         createdAt: .distantPast,
         content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
@@ -114,7 +116,7 @@ public extension Toot {
     )
 
     static let placeholderWithHTML = Toot(
-        id: "",
+        id: "root",
         url: URL(string: "https://example.com")!,
         createdAt: .distantPast,
         content: "Hello world. <a href=\"https://example.com\">Test</a>",
@@ -123,7 +125,7 @@ public extension Toot {
     )
 
     static let placeholderWithAttachments = Toot(
-        id: "",
+        id: "root",
         url: URL(string: "https://example.com")!,
         createdAt: .distantPast,
         content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
@@ -133,10 +135,28 @@ public extension Toot {
             MediaAttachment(
                 id: $0.formatted(),
                 url: URL(string: "https://example.com/\($0)")!,
-                meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 1, height: 1)),
-                blurhash: nil
+                meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+                blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
             )
         }
     )
+
+    static func placeholderWithAttachmentName(_ attachmentName: String) -> Toot {
+        Toot(
+            id: attachmentName,
+            url: URL(string: "https://example.com")!,
+            createdAt: .distantPast,
+            content: "Hello world.",
+            account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/\(attachmentName)_avatar")!),
+            mediaAttachments: [
+                MediaAttachment(
+                    id: attachmentName,
+                    url: URL(string: "https://example.com/attachments/\(attachmentName)")!,
+                    meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+                    blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
+                ),
+            ]
+        )
+    }
 
 }

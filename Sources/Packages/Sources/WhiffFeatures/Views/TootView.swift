@@ -7,10 +7,10 @@ struct TootView: View {
     let toot: Toot
     let attributedContent: AttributedString?
     let settings: SettingsFeature.State
-    let images: [URLKey: Image]
+    let images: [URLKey: ImageEquatable]
     let padding: Double
 
-    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: Image], settings: SettingsFeature.State, padding: Double = 15) {
+    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: ImageEquatable], settings: SettingsFeature.State, padding: Double = 15) {
         self.toot = toot
         self.attributedContent = attributedContent
         self.images = images

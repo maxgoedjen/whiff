@@ -3,13 +3,13 @@ import SwiftUI
 
 public protocol ImageRendererProtocol: Sendable {
 
-    @MainActor func render(state: ExportFeature.State) async throws -> Image
+    @MainActor func render(state: ExportFeature.State) async throws -> ImageEquatable
 
 }
 
 public final class ImageRendererSwiftUI: ImageRendererProtocol {
 
-    public func render(state: ExportFeature.State) async throws -> Image {
+    public func render(state: ExportFeature.State) async throws -> ImageEquatable {
         guard state.toot != nil else {
             throw UnableToRenderError()
         }
@@ -43,13 +43,13 @@ public final class ImageRendererSwiftUI: ImageRendererProtocol {
         guard let image = renderer.uiImage else {
             throw UnableToRenderError()
         }
-        return Image(uiImage: image)
+        return ImageEquatable(uiImage: image, equatableValue: state)
     }
 }
 
 public final class UnimplementedImageRenderer: ImageRendererProtocol {
 
-    public func render(state: ExportFeature.State) async throws -> Image {
+    public func render(state: ExportFeature.State) async throws -> ImageEquatable {
         fatalError()
     }
 

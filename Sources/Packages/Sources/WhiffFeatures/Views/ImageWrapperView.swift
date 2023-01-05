@@ -2,8 +2,8 @@ import SwiftUI
 
 struct ImageWrapperView: View {
 
-    var image: Image?
-    var blurhash: Image?
+    var image: ImageEquatable?
+    var blurhash: ImageEquatable?
     var size: CGSize
     var contentMode: ContentMode
 
@@ -11,11 +11,13 @@ struct ImageWrapperView: View {
         Group {
             if let image {
                 image
+                    .image.value // FIXME: Gross
                     .resizable()
                     .aspectRatio(size, contentMode: contentMode)
             } else {
                 if let blurhash {
                     blurhash
+                        .image.value // FIXME: Gross
                         .resizable()
                         .aspectRatio(size, contentMode: contentMode)
                         .overlay {
