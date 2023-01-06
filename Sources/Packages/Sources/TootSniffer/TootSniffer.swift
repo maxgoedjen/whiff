@@ -61,6 +61,7 @@ public final class TootSniffer: TootSnifferProtocol {
             let raw = try decoder.decode(Toot.self, from: data)
             return try cleanToot(raw)
         } catch {
+            print(error)
             if let http = response as? HTTPURLResponse, http.statusCode == 401 {
                 throw NotAuthenticatedError()
             }

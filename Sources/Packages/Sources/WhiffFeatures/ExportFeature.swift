@@ -161,7 +161,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             state.attributedContent[toot.id] = nil
         }
         for attachment in toot.allImages {
-            let url = attachment.url
+            let url = attachment.displayURL
             if let blurhash = attachment.blurhash {
                 let key = URLKey(url, .blurhash)
                 let scaled = CGSize(width: 10.0, height: attachment.size.height * (10.0 / attachment.size.width))
@@ -171,7 +171,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         }
         var effect = EffectTask<Action>.none
         for attachment in toot.allImages {
-            let url = attachment.url
+            let url = attachment.displayURL
             effect = effect.merge(with: EffectTask.task {
                 .loadImageCompleted(await TaskResult {
                     let key = URLKey(url, .remote)

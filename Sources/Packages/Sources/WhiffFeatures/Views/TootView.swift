@@ -45,10 +45,11 @@ struct TootView: View {
                 HStack {
                     ForEach(toot.mediaAttachments) { attachment in
                         ImageWrapperView(
-                            image: images[URLKey(attachment.url, .remote)],
-                            blurhash: images[URLKey(attachment.url, .blurhash)],
+                            image: images[URLKey(attachment.displayURL, .remote)],
+                            blurhash: images[URLKey(attachment.displayURL, .blurhash)],
                             size: attachment.size,
-                            contentMode: .fit
+                            contentMode: .fit,
+                            type: attachment.type
                         )
                     }
                 }
@@ -57,10 +58,11 @@ struct TootView: View {
                 VStack(spacing: 5) {
                     ForEach(toot.mediaAttachments) { attachment in
                         ImageWrapperView(
-                            image: images[URLKey(attachment.url, .remote)],
-                            blurhash: images[URLKey(attachment.url, .blurhash)],
+                            image: images[URLKey(attachment.displayURL, .remote)],
+                            blurhash: images[URLKey(attachment.displayURL, .blurhash)],
                             size: attachment.size,
-                            contentMode: .fill
+                            contentMode: .fill,
+                            type: attachment.type
                         )
                     }
                 }
@@ -71,10 +73,11 @@ struct TootView: View {
                     ZStack {
                         ForEach(Array(zip(toot.mediaAttachments.indices, toot.mediaAttachments)), id: \.0) { idx, attachment in
                             ImageWrapperView(
-                                image: images[URLKey(attachment.url, .remote)],
-                                blurhash: images[URLKey(attachment.url, .blurhash)],
+                                image: images[URLKey(attachment.displayURL, .remote)],
+                                blurhash: images[URLKey(attachment.displayURL, .blurhash)],
                                 size: attachment.size,
-                                contentMode: .fit
+                                contentMode: .fit,
+                                type: attachment.type
                             )
                             .frame(maxWidth: 50)
                             .border(.white, width: 1)
