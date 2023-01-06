@@ -309,6 +309,47 @@ final class ExportFeatureTests: XCTestCase {
         }
     }
 
+    func testVideoImageLoaded() async throws {
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithVideoAttachment), .success(TootContext())))
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar, loadOrder: [
+                    "https://example.com/avatar",
+                    "https://example.com/video_thumb",
+                ].map { URL(string: $0)! }))
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.receive(.settings(.load))
+        let blurhashes: [URLKey: ImageEquatable] = [
+            URLKey("https://example.com/video_thumb", .blurhash): .sampleBlurhash,
+        ]
+        await store.receive(.tootSniffCompleted(.success(.placeholderWithVideoAttachment))) {
+            $0.toot = .placeholderWithVideoAttachment
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholderWithVideoAttachment.content))]
+            $0.visibleContextIDs = Set(["root"])
+            $0.images = blurhashes
+        }
+        await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
+            $0.tootContext = TootContext()
+        }
+        await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+        }
+        await store.receive(.loadImageCompleted(.success(.loadResponse("video_thumb")))) {
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/video_thumb")] = .sampleAvatar
+        }
+        await store.receive(.rerendered(.success(.sampleRendered))) {
+            $0.rendered = .sampleRendered
+        }
+    }
+
     func testContextImagesLoaded() async throws {
         store = TestStore(
             initialState: ExportFeature.State(),

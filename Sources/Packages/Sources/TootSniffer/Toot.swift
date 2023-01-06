@@ -50,49 +50,87 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
 
     /// The ID for the media.
     public let id: String
+    /// The type of media.
+    public let type: MediaType
     /// The URL to load the media from.
-    public let url: URL
+    /// > Warning: May be a video, gif, etc. Use displayURL to load an image.
+    private let url: URL
+    /// The URL for a thumbnail for the media.
+    public let previewUrl: URL
     /// Metadata associated with the media (resolution, etc).
-    public let meta: MediaAttachmentMeta
+    public let meta: Meta
     /// A blurhash to use while the media is loading.
     public let blurhash: String?
     /// CGSize wrapper for the size attributes.
     public var size: CGSize {
         CGSize(width: meta.original.width, height: meta.original.height)
     }
+    /// Image to display. URL for images, previewURL for videos and other media types.
+    public var displayURL: URL {
+        if case .image = type {
+            return url
+        }
+        return previewUrl
+    }
 
     /// Initializes a MediaAttachment.
     /// - Parameters:
     ///   - id: A unique ID to use for the attachment. Falls back to using the URL if none is specified.
+    ///   - type: The type of media.
     ///   - url: The URL to load the media from.
+    ///   - previewURL: The URL for a preview thumbnail for the media.
     ///   - meta: Metadata associated with the media (resolution, etc).
     ///   - blurhash: A blurhash to use while the media is loading.
-    fileprivate init(id: String? = nil, url: URL, meta: MediaAttachmentMeta = MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+    fileprivate init(id: String? = nil, type: MediaType = .image, url: URL, previewUrl: URL? = nil, meta: Meta = Meta(original: Meta.Size(width: 100, height: 100)),
                      blurhash: String? = nil)
     {
         self.id = id ?? url.absoluteString
+        self.type = type
         self.url = url
+        self.previewUrl = previewUrl ?? url
         self.meta = meta
         self.blurhash = blurhash
     }
 
-}
-
-/// Model for metadata associated with media.
-public struct MediaAttachmentMeta: Equatable, Sendable, Codable {
-
-    /// The original size of the media.
-    public let original: MediaAttachmentSize
 
 }
 
-/// The size of the media.
-public struct MediaAttachmentSize: Equatable, Sendable, Codable {
+extension MediaAttachment {
 
-    /// The width, in pixels, of the media.
-    public let width: Int
-    /// The height, in pixels, of the media.
-    public let height: Int
+    /// Enum desecribing what kind of media an attachment is.
+    public enum MediaType: String, Codable, Sendable {
+        case image
+        case gifv
+        case video
+        case audio
+        case unknown
+    }
+
+}
+
+extension MediaAttachment {
+
+    /// Model for metadata associated with media.
+    public struct Meta: Equatable, Sendable, Codable {
+
+        /// The original size of the media.
+        public let original: Size
+
+    }
+
+}
+
+extension MediaAttachment.Meta {
+
+    /// The size of the media.
+    public struct Size: Equatable, Sendable, Codable {
+
+        /// The width, in pixels, of the media.
+        public let width: Int
+        /// The height, in pixels, of the media.
+        public let height: Int
+
+    }
 
 }
 
@@ -189,10 +227,28 @@ public extension Toot {
             MediaAttachment(
                 id: $0.formatted(),
                 url: URL(string: "https://example.com/\($0)")!,
-                meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+                meta: MediaAttachment.Meta(original: MediaAttachment.Meta.Size(width: 100, height: 100)),
                 blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
             )
         }
+    )
+
+    static let placeholderWithVideoAttachment = Toot(
+        id: "root",
+        url: URL(string: "https://example.com")!,
+        createdAt: .distantPast,
+        content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
+        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
+        mediaAttachments: [
+            MediaAttachment(
+                id: "video",
+                type: .video,
+                url: URL(string: "https://example.com/video.mp4")!,
+                previewUrl: URL(string: "https://example.com/video_thumb")!,
+                meta: MediaAttachment.Meta(original: MediaAttachment.Meta.Size(width: 100, height: 100)),
+                blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
+            )
+        ]
     )
 
     static func placeholderWithAttachmentName(_ attachmentName: String) -> Toot {
@@ -206,7 +262,7 @@ public extension Toot {
                 MediaAttachment(
                     id: attachmentName,
                     url: URL(string: "https://example.com/attachments/\(attachmentName)")!,
-                    meta: MediaAttachmentMeta(original: MediaAttachmentSize(width: 100, height: 100)),
+                    meta: MediaAttachment.Meta(original: MediaAttachment.Meta.Size(width: 100, height: 100)),
                     blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
                 ),
             ]
