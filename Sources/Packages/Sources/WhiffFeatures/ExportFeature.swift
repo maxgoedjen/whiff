@@ -244,7 +244,7 @@ public struct ExportFeatureView: View {
                     ZStack {
                         ScrollViewReader { value in
                             ScrollView {
-                                VStack(spacing: 0) {
+                                VStack(alignment: .leading, spacing: 0) {
                                     ForEach(Array(zip(viewStore.allToots, viewStore.allToots.indices)), id: \.0.id) { item in
                                         let (toot, idx) = item
                                         TootView(
