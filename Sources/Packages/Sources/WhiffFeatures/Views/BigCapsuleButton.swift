@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Button style for the big blue capsule style used by Whiff.
 public struct BigCapsuleButton: ButtonStyle {
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label

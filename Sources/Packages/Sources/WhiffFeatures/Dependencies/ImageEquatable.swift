@@ -1,27 +1,43 @@
 import ComposableArchitecture
 import SwiftUI
 
-// Image equality is pretty... rough, especially when testing.
-// This just allows an equatable key
+/// Wrapper type to allow better Image Equality testing for tests.
 public struct ImageEquatable: View, Sendable, Equatable {
 
+    /// The underlying image.
     public let image: UncheckedSendable<Image>
-    // Ideally this would be `any Equatable`, but existentials can't conform to their own protocols
-    // and AnyHashable erases Equatable anyway, so 🤷
+    /// The value to check during equality comparisons.
+    /// > Note: Ideally this would be `any Equatable`, but existentials can't conform to their own protocols and AnyHashable erases Equatable anyway, so 🤷
     public let equatableValue: UncheckedSendable<AnyHashable>
 
+    /// Conveninence initializer for UIImages and non-Hashable equatables.
+    /// - Parameters:
+    ///   - uiImage: The image to wrap.
+    ///   - equatableValue: The equatable value to use.
     public init(uiImage: UIImage, equatableValue: some Equatable) {
         self.init(image: Image(uiImage: uiImage), equatableValue: HashableBox(value: equatableValue))
     }
 
+    /// Conveninence initializer for non-Hashable equatables.
+    /// - Parameters:
+    ///   - uiImage: The image to wrap.
+    ///   - equatableValue: The equatable value to use.
     public init(image: Image, equatableValue: some Equatable) {
         self.init(image: image, equatableValue: HashableBox(value: equatableValue))
     }
 
+    /// Conveninence initializer for UIImages.
+    /// - Parameters:
+    ///   - uiImage: The image to wrap.
+    ///   - equatableValue: The equatable value to use.
     public init(uiImage: UIImage, equatableValue: some Hashable) {
         self.init(image: Image(uiImage: uiImage), equatableValue: equatableValue)
     }
 
+    /// Initializer.
+    /// - Parameters:
+    ///   - uiImage: The image to wrap.
+    ///   - equatableValue: The equatable value to use.
     public init(image: Image, equatableValue: some Hashable) {
         self.image = UncheckedSendable(image)
         self.equatableValue = UncheckedSendable(equatableValue as AnyHashable)
@@ -35,6 +51,7 @@ public struct ImageEquatable: View, Sendable, Equatable {
         lhs.equatableValue.value == rhs.equatableValue.value
     }
 
+    /// Box type to alow easy casting to AnyHashable eraser.
     struct HashableBox<T: Equatable>: Hashable {
 
         let value: T

@@ -7,6 +7,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
 
     @Dependency(\.keyValueStorage) var keyValueStorage
 
+    /// State which is actually persisted to storage (in Codable-written format).
     internal struct PersistableState: Equatable, Sendable, Codable {
         var textColorData: Data?
         var linkColorData: Data?
@@ -24,6 +25,8 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         internal init(_ persistableState: PersistableState) {
             self.persistableState = persistableState
         }
+
+        // Bridges to `PersistableState` with fallbacks to default values.
 
         public var textColor: Color {
             get {

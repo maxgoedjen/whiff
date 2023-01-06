@@ -1,5 +1,6 @@
 import SwiftUI
 
+/// Wrapper view to deal with image loading and blurhash display.
 struct ImageWrapperView: View {
 
     var image: ImageEquatable?

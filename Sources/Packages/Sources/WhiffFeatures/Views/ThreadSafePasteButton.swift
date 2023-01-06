@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 
+/// Paste button wrapper that dispatches to main queue before calling onPaste.
 public struct PasteButtonThreadSafe<T: Transferable>: View {
 
     let onPaste: ([T]) -> Void

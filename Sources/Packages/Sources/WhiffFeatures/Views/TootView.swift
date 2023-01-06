@@ -2,21 +2,20 @@ import BlurHashKit
 import SwiftUI
 import TootSniffer
 
+/// View that renderes the content of a post.
 struct TootView: View {
 
+    /// The post to display.
     let toot: Toot
-    let attributedContent: AttributedString?
-    let settings: SettingsFeature.State
-    let images: [URLKey: ImageEquatable]
-    let padding: Double
 
-    init(toot: Toot, attributedContent: AttributedString?, images: [URLKey: ImageEquatable], settings: SettingsFeature.State, padding: Double = 15) {
-        self.toot = toot
-        self.attributedContent = attributedContent
-        self.images = images
-        self.settings = settings
-        self.padding = padding
-    }
+    /// Parsed AttributedContent object for the post (usually includes parsed links/hashtags).
+    let attributedContent: AttributedString?
+
+    /// The loaded images for the post.
+    let images: [URLKey: ImageEquatable]
+
+    /// Settings for how the post should be displayed.
+    let settings: SettingsFeature.State
 
     var content: some View {
         Group {
@@ -96,7 +95,7 @@ struct TootView: View {
                     .font(.system(.footnote, design: .rounded, weight: .regular))
             }
         }
-        .padding(padding)
+        .padding(15)
         .frame(maxWidth: .infinity)
         .background(settings.backgroundColor)
     }

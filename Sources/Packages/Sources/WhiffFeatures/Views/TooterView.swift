@@ -2,10 +2,16 @@ import BlurHashKit
 import SwiftUI
 import TootSniffer
 
+/// View that renders the account information of a user.
 struct TooterView: View {
 
+    /// The account to display.
     let tooter: Tooter
+
+    /// The loaded images for the post.
     let images: [URLKey: ImageEquatable]
+
+    /// Settings for how the post should be displayed.
     let settings: SettingsFeature.State
 
     var body: some View {

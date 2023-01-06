@@ -2,11 +2,19 @@ import Foundation
 import RegexBuilder
 import SwiftUI
 
+/// Protocol for retreiving post and context objects from a Mastodon server instance's API.
 public protocol TootSnifferProtocol: Sendable {
+    /// Retrieves a `Toot` model object from a Mastodon server's API.
+    /// - Parameter url: The URL of the post to fetch.
+    /// - Returns: A `Toot` model object, if the URL is a valid and accessible post.
     func sniff(url: URL) async throws -> Toot
+    /// Retrieves a `TootContext` model object from a Mastodon server's API.
+    /// - Parameter url: The URL of the post to fetch the context of.
+    /// - Returns: A `TootContext` model object, if the URL is a valid and accessible post.
     func sniffContext(url: URL) async throws -> TootContext
 }
 
+/// Concrete implementation of `TootSnifferProtocol`.
 public final class TootSniffer: TootSnifferProtocol {
 
     private enum Endpoint: String {
@@ -27,6 +35,11 @@ public final class TootSniffer: TootSnifferProtocol {
         return try await loadTootContext(url: apiURL)
     }
 
+    /// Constructs a Mastodon API URL for a given post URL and endpoint.
+    /// - Parameters:
+    ///   - url: The URL of the post to fetch.
+    ///   - endpoint: The endpoint to fetch (either the post itself, or the context of the post).
+    /// - Returns: The URL for the API specified.
     private func constructMastodonAPIURL(url: URL, endpoint: Endpoint) async throws -> URL {
         guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let id = apiLink.path.split(separator: "/").last
@@ -36,6 +49,9 @@ public final class TootSniffer: TootSnifferProtocol {
         return final
     }
 
+    /// Loads and deserializes the `Toot` model.
+    /// - Parameter url: The API endpoint URL for the post.
+    /// - Returns: A `Toot` model object, if the URL is a valid and accessible post.
     private func loadToot(url: URL) async throws -> Toot {
         let (data, response) = try await URLSession.shared.data(from: url)
         let decoder = JSONDecoder()
@@ -52,6 +68,9 @@ public final class TootSniffer: TootSnifferProtocol {
         }
     }
 
+    /// Loads and deserializes the `TootContext` model.
+    /// - Parameter url: The API endpoint URL for the post context.
+    /// - Returns: A `TootContext` model object, if the URL is a valid and accessible post.
     private func loadTootContext(url: URL) async throws -> TootContext {
         let (data, _) = try await URLSession.shared.data(from: url)
         let decoder = JSONDecoder()
@@ -69,6 +88,9 @@ public final class TootSniffer: TootSnifferProtocol {
         }
     }
 
+    /// Decodes the date in the post, because JSONDecoder's ISO 8601 parser is finnicky.
+    /// - Parameter decoder: The decoder to use.
+    /// - Returns: A date, if one is able to be parsed from the decoder.
     @Sendable @inlinable func dateDecoder(_ decoder: Decoder) throws -> Date {
         let container = try decoder.singleValueContainer()
         let string = try container.decode(String.self)
@@ -80,6 +102,9 @@ public final class TootSniffer: TootSnifferProtocol {
         return date
     }
 
+    /// Cleans up some of the fields of the `Toot` model.
+    /// - Parameter toot: The `Toot` to clean up.
+    /// - Returns: A `Toot` with certain fields (described in function) normalized.
     func cleanToot(_ toot: Toot) throws -> Toot {
         var cleaned = toot
         // Mastodon API doesn't return a clean "@username@example.com" style username, so we'll look at the canonical

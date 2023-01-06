@@ -1,12 +1,14 @@
 import ComposableArchitecture
 import SwiftUI
 
+/// Protocol for rendering an exportable image based on `ExportFeature.State`.
 public protocol ImageRendererProtocol: Sendable {
 
     @MainActor func render(state: ExportFeature.State) async throws -> ImageEquatable
 
 }
 
+/// Concrete implementation of `ImageRendererProtocol` which uses SwiftUI's `ImageRenderer`.
 public final class ImageRendererSwiftUI: ImageRendererProtocol {
 
     public func render(state: ExportFeature.State) async throws -> ImageEquatable {

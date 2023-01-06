@@ -1,12 +1,17 @@
 import ComposableArchitecture
 import SwiftUI
 
+/// Protocol to abstract image loading.
 public protocol ImageLoaderProtocol: Sendable {
 
+    /// Loads an image from a specified URL.
+    /// - Parameter url: The URL for the image to load.
+    /// - Returns: An `ImageEquatable` struct.
     func loadImage(at url: URL) async throws -> ImageEquatable
 
 }
 
+/// Concrete implementation of `ImageLoaderProtocol` backed by a URLSession.
 public final class ImageLoaderURLSession: ImageLoaderProtocol {
 
     let session: URLSession
