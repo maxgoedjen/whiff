@@ -350,6 +350,47 @@ final class ExportFeatureTests: XCTestCase {
         }
     }
 
+    func testCardImageLoaded() async throws {
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithCard), .success(TootContext())))
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar, loadOrder: [
+                    "https://example.com/avatar",
+                    "https://example.com/cardimage",
+                ].map { URL(string: $0)! }))
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.receive(.settings(.load))
+        let blurhashes: [URLKey: ImageEquatable] = [
+            URLKey("https://example.com/cardimage", .blurhash): .sampleBlurhash,
+        ]
+        await store.receive(.tootSniffCompleted(.success(.placeholderWithCard))) {
+            $0.toot = .placeholderWithCard
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholderWithCard.content))]
+            $0.visibleContextIDs = Set(["root"])
+            $0.images = blurhashes
+        }
+        await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
+            $0.tootContext = TootContext()
+        }
+        await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+        }
+        await store.receive(.loadImageCompleted(.success(.loadResponse("cardimage")))) {
+            $0.images = blurhashes
+            $0.images[URLKey("https://example.com/avatar")] = .sampleAvatar
+            $0.images[URLKey("https://example.com/cardimage")] = .sampleAvatar
+        }
+        await store.receive(.rerendered(.success(.sampleRendered))) {
+            $0.rendered = .sampleRendered
+        }
+    }
+
     func testContextImagesLoaded() async throws {
         store = TestStore(
             initialState: ExportFeature.State(),

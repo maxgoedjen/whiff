@@ -276,6 +276,16 @@ public extension Toot {
         ]
     )
 
+    static let placeholderWithCard = Toot(
+        id: "root",
+        url: URL(string: "https://example.com")!,
+        createdAt: .distantPast,
+        content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
+        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
+        mediaAttachments: [],
+        card: Card(title: "Some Card", description: "Some Description", url: URL(string: "https://example.com")!, image: URL(string: "https://example.com/cardimage")!, blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj", width: 100, height: 100)
+    )
+
     static func placeholderWithAttachmentName(_ attachmentName: String) -> Toot {
         Toot(
             id: attachmentName,
