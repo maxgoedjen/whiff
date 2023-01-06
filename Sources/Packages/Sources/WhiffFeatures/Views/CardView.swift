@@ -16,20 +16,22 @@ struct CardView: View {
                 ImageWrapperView(image: images[URLKey(image, .remote)], blurhash: images[URLKey(image, .remote)], size: CGSize(width: card.width, height: card.height), contentMode: .fit, type: .image)
                     .frame(maxWidth: .infinity)
             }
-            VStack(alignment: .leading, spacing: 5) {
-                Text(card.title)
-                    .font(.system(.headline, design: .rounded, weight: .bold))
-                if let description = card.description {
-                    Text(description)
-                        .font(.system(.body, design: .rounded, weight: .regular))
+            HStack {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(card.title)
+                        .font(.system(.headline, design: .rounded, weight: .bold))
+                    if let description = card.description {
+                        Text(description)
+                            .font(.system(.body, design: .rounded, weight: .regular))
+                    }
+                    if let url = card.url {
+                        Text(url.absoluteString)
+                            .font(.system(.footnote, design: .rounded, weight: .regular))
+                    }
                 }
-                if let url = card.url {
-                    Text(url.absoluteString)
-                        .font(.system(.footnote, design: .rounded, weight: .regular))
-                }
+                .padding()
+                Spacer()
             }
-            .frame(maxWidth: .infinity)
-            .padding()
             .background(Material.thin)
         }
         .cornerRadius(10)
