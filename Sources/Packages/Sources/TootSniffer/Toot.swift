@@ -18,11 +18,16 @@ public struct Toot: Equatable, Sendable, Codable, Identifiable {
     public var account: Tooter
     /// Any media attached to the post.
     public var mediaAttachments: [MediaAttachment]
+    /// Any card attached to the post.
+    public var card: Card?
 
     /// All media attached to the post, including the avatar of the poster (wrapped in a MediaAttachment struct to simplify loading).
     public var allImages: [MediaAttachment] {
-        mediaAttachments +
-            [MediaAttachment(url: account.avatar)]
+        var attachments = [MediaAttachment(url: account.avatar)] + mediaAttachments
+        if let card, let image = card.image {
+            attachments.append(MediaAttachment(id: card.url.absoluteString , type: .image, url: image, meta: MediaAttachment.Meta(original: .init(width: card.width, height: card.height)), blurhash: card.blurhash))
+        }
+        return attachments
     }
 
     /// Convenience accessor for determining if the post is a reply.
@@ -131,6 +136,26 @@ extension MediaAttachment.Meta {
         public let height: Int
 
     }
+
+}
+
+/// Model object for a "card" – usually a link to a website with a thumb/title.
+public struct Card: Equatable, Sendable, Codable {
+
+    /// Title for the card.
+    public let title: String
+    /// Description for the card.
+    public let description: String?
+    /// The URL the card links to.
+    public let url: URL
+    /// A URL for a preview image for the card, if one exists.
+    public let image: URL?
+    /// A blurhash for the image.
+    public let blurhash: String?
+    /// The width, in pixels, of the image.
+    public let width: Int
+    /// The height, in pixels, of the image.
+    public let height: Int
 
 }
 
@@ -249,6 +274,16 @@ public extension Toot {
                 blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
             )
         ]
+    )
+
+    static let placeholderWithCard = Toot(
+        id: "root",
+        url: URL(string: "https://example.com")!,
+        createdAt: .distantPast,
+        content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
+        account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
+        mediaAttachments: [],
+        card: Card(title: "Some Card", description: "Some Description", url: URL(string: "https://example.com")!, image: URL(string: "https://example.com/cardimage")!, blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj", width: 100, height: 100)
     )
 
     static func placeholderWithAttachmentName(_ attachmentName: String) -> Toot {
