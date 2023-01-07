@@ -89,7 +89,7 @@ struct TootView: View {
                     }
                 }
                 if let card = toot.card {
-                    CardView(card: card, images: images)
+                    CardView(card: card, images: images, settings: settings)
                 }
                 if settings.showDate {
                     Text(toot.createdAt.formatted())

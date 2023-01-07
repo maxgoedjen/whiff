@@ -9,6 +9,8 @@ struct CardView: View {
     let card: Card
     /// The loaded images for the post.
     let images: [URLKey: ImageEquatable]
+    /// Settings for how the post should be displayed.
+    let settings: SettingsFeature.State
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,13 +21,16 @@ struct CardView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
                     Text(card.title)
+                        .foregroundColor(settings.textColor)
                         .font(.system(.headline, design: .rounded, weight: .bold))
                     if let description = card.description {
                         Text(description)
+                            .foregroundColor(settings.textColor)
                             .font(.system(.body, design: .rounded, weight: .regular))
                     }
                     if let url = card.url {
                         Text(url.absoluteString)
+                            .foregroundColor(settings.linkColor)
                             .font(.system(.footnote, design: .rounded, weight: .regular))
                     }
                 }
