@@ -36,7 +36,6 @@ public final class ImageRendererSwiftUI: ImageRendererProtocol {
                 }
             }
         }
-        .background(state.settings.backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: state.settings.roundCorners ? 15 : 0))
 
         let renderer =

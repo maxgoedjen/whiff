@@ -198,9 +198,9 @@ public struct URLKey: Hashable, Sendable {
     }
 
     /// The URL of the media.
-    let url: URL
+    public let url: URL
     /// The kind of resource specified by the key.
-    let kind: Kind
+    public let kind: Kind
 
     /// Initializes a URLKey.
     /// - Parameters:
