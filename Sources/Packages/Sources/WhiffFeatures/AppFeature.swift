@@ -38,7 +38,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
             switch action {
-            case .onAppear:
+            case .onAppear, .authenticate(.response):
                 state.loggedIn = authenticator.loggedIn
                 return .none
             case let .load(urls):
@@ -54,11 +54,6 @@ public struct AppFeature: ReducerProtocol, Sendable {
             case let .setShowingAuthentication(showingAuthentication):
                 state.showingAuthentication = showingAuthentication
                 return .none
-            case .authenticate(.response(.success)):
-                state.loggedIn = true
-                return .task {
-                    .export(.rerequest)
-                }
             default:
                 return .none
             }
