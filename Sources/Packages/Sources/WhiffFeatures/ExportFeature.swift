@@ -9,7 +9,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     @Dependency(\.tootSniffer) var tootSniffer
     @Dependency(\.imageRenderer) var imageRenderer
     @Dependency(\.imageLoader) var imageLoader
-    @Dependency(\.urlSession) var urlSession
+    @Dependency(\.authenticator) var authenticator
     @Dependency(\.mainQueue) var mainQueue
 
     public struct State: Equatable, Sendable {
@@ -71,10 +71,10 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 return .settings(.load)
             }
             .concatenate(with: .task {
-                .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url) })
+                .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url, authToken: authenticator.existingToken) })
             })
             .concatenate(with: .task {
-                .tootSniffContextCompleted(await TaskResult { try await tootSniffer.sniffContext(url: url) })
+                .tootSniffContextCompleted(await TaskResult { try await tootSniffer.sniffContext(url: url, authToken: authenticator.existingToken) })
             })
         case let .tootSniffCompleted(.success(toot)):
             state.toot = toot

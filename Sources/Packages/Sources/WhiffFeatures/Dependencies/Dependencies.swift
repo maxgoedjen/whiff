@@ -60,6 +60,20 @@ public extension DependencyValues {
     }
 }
 
+private enum AuthenticatorKey: DependencyKey {
+    static let liveValue: AuthenticatorProtocol = AuthenticationServicesAuthenticator()
+    #if DEBUG
+    static let testValue: AuthenticatorProtocol = UnimplementedAuthenticator()
+    #endif
+}
+
+public extension DependencyValues {
+    var authenticator: AuthenticatorProtocol {
+        get { self[AuthenticatorKey.self] }
+        set { self[AuthenticatorKey.self] = newValue }
+    }
+}
+
 private enum DismissExtensionKey: DependencyKey {
     @MainActor static let liveValue: @MainActor @Sendable (Error?) -> Void = { _ in }
     #if DEBUG
