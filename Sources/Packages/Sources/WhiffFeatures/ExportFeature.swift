@@ -133,12 +133,23 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         switch action {
         case .settings(.load):
             return .none
-        case .tootSniffCompleted, .loadImageCompleted, .settings, .tappedContextToot:
+        case .tootSniffCompleted, .loadImageCompleted(.success), .settings, .tappedContextToot:
             if let toot = state.toot, case .settings(.linkColorModified) = action {
                 do {
                     state.attributedContent[toot.id] = UncheckedSendable(try attributedContent(from: toot, linkColor: state.settings.linkColor))
                 } catch {
                     state.attributedContent[toot.id] = nil
+                }
+            }
+            // We only need to rerender if the image that was loaded is included in the set of selected images.
+            if case let .loadImageCompleted(.success(result)) = action {
+                let visibleImages = state.allToots
+                    .filter { state.visibleContextIDs.contains($0.id) }
+                    .flatMap(\.allImages)
+                    .map(\.displayURL)
+                guard visibleImages.contains(result.url.url) else {
+                    return .none
+
                 }
             }
             return .task { [state] in
