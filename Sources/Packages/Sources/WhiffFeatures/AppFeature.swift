@@ -5,21 +5,24 @@ import TootSniffer
 public struct AppFeature: ReducerProtocol, Sendable {
 
     public struct State: Equatable, Sendable {
-        public var showing = false
+        public var showingExport = false
+        public var showingAuthentication = false
         public var exportState = ExportFeature.State()
 
         public init() {
         }
 
-        internal init(showing: Bool = false, exportState: ExportFeature.State = ExportFeature.State()) {
-            self.showing = showing
+        internal init(showingExport: Bool = false, showingAuthentication: Bool = false, exportState: ExportFeature.State = ExportFeature.State()) {
+            self.showingExport = showingExport
             self.exportState = exportState
+            self.showingAuthentication = showingAuthentication
         }
     }
 
     public enum Action: Equatable {
         case load([URL])
-        case setShowing(Bool)
+        case setShowingExport(Bool)
+        case setShowingAuthentication(Bool)
         case export(ExportFeature.Action)
     }
 
@@ -31,13 +34,16 @@ public struct AppFeature: ReducerProtocol, Sendable {
             switch action {
             case let .load(urls):
                 guard let url = urls.first else { return .none }
-                state.showing = true
+                state.showingExport = true
                 return .task {
                     return .export(.requested(url: url))
                 }
-            case let .setShowing(showing):
-                state.showing = showing
+            case let .setShowingExport(showingExport):
+                state.showingExport = showingExport
                 state.exportState = ExportFeature.State()
+                return .none
+            case let .setShowingAuthentication(showingAuthentication):
+                state.showingAuthentication = showingAuthentication
                 return .none
             default:
                 return .none
@@ -71,13 +77,25 @@ public struct AppFeatureView: View {
                 }
                 .buttonStyle(BigCapsuleButton())
             }
-            .sheet(isPresented: viewStore.binding(get: \.showing, send: AppFeature.Action.setShowing)) {
+            .sheet(isPresented: viewStore.binding(get: \.showingExport, send: AppFeature.Action.setShowingExport)) {
                 NavigationStack {
                     ExportFeatureView(store: store.scope(state: \.exportState, action: AppFeature.Action.export))
                         .toolbar {
                             ToolbarItem(placement: .confirmationAction) {
                                 Button("Done") {
-                                    viewStore.send(.setShowing(false))
+                                    viewStore.send(.setShowingExport(false))
+                                }
+                            }
+                        }
+                }
+            }
+            .sheet(isPresented: viewStore.binding(get: \.showingAuthentication, send: AppFeature.Action.setShowingAuthentication)) {
+                NavigationStack {
+                    ExportFeatureView(store: store.scope(state: \.exportState, action: AppFeature.Action.export))
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Done") {
+                                    viewStore.send(.setShowingExport(false))
                                 }
                             }
                         }
