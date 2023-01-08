@@ -8,6 +8,14 @@ public protocol AuthenticatorProtocol: Sendable {
     func logout()
 }
 
+extension AuthenticatorProtocol {
+
+    public var loggedIn: Bool {
+        existingToken != nil
+    }
+
+}
+
 public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
 
     private let contextBridge = WebAuthenticationContextBridge()

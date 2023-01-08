@@ -13,6 +13,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     @Dependency(\.mainQueue) var mainQueue
 
     public struct State: Equatable, Sendable {
+        public var lastURL: URL?
         public var toot: Toot?
         public var tootContext: TootContext?
         public var attributedContent: [Toot.ID: UncheckedSendable<AttributedString>] = [:]
@@ -41,6 +42,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public enum Action: Equatable {
         case requested(url: URL)
+        case rerequest
         case tootSniffCompleted(TaskResult<Toot>)
         case tootSniffContextCompleted(TaskResult<TootContext>)
         case loadImageCompleted(TaskResult<ImageLoadResponse>)
@@ -64,6 +66,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     public func internalReduce(into state: inout State, action: Action) -> EffectTask<Action> {
         switch action {
         case let .requested(url):
+            state.lastURL = url
             state.toot = nil
             state.images = [:]
             state.attributedContent = [:]
@@ -76,6 +79,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             .concatenate(with: .task {
                 .tootSniffContextCompleted(await TaskResult { try await tootSniffer.sniffContext(url: url, authToken: authenticator.existingToken) })
             })
+        case .rerequest:
+            guard let url = state.lastURL else { return .none }
+            return .task {
+                .requested(url: url)
+            }
         case let .tootSniffCompleted(.success(toot)):
             state.toot = toot
             state.visibleContextIDs.insert(toot.id)
@@ -321,6 +329,7 @@ public struct ExportFeatureView: View {
                             .font(.headline)
                         Text(error)
                     }
+                    .padding()
                 } else {
                     VStack {
                         TootView(toot: .placeholder, attributedContent: nil, images: [:], settings: viewStore.settings)

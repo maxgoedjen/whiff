@@ -4,7 +4,10 @@ import TootSniffer
 
 public struct AppFeature: ReducerProtocol, Sendable {
 
+    @Dependency(\.authenticator) var authenticator
+
     public struct State: Equatable, Sendable {
+        public var loggedIn = false
         public var showingExport = false
         public var showingAuthentication = false
         public var exportState = ExportFeature.State()
@@ -21,6 +24,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
     }
 
     public enum Action: Equatable {
+        case onAppear
         case load([URL])
         case setShowingExport(Bool)
         case setShowingAuthentication(Bool)
@@ -34,6 +38,9 @@ public struct AppFeature: ReducerProtocol, Sendable {
     public var body: some ReducerProtocol<State, Action> {
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                state.loggedIn = authenticator.loggedIn
+                return .none
             case let .load(urls):
                 guard let url = urls.first else { return .none }
                 state.showingExport = true
@@ -47,6 +54,11 @@ public struct AppFeature: ReducerProtocol, Sendable {
             case let .setShowingAuthentication(showingAuthentication):
                 state.showingAuthentication = showingAuthentication
                 return .none
+            case .authenticate(.response(.success)):
+                state.loggedIn = true
+                return .task {
+                    .export(.rerequest)
+                }
             default:
                 return .none
             }
@@ -71,20 +83,34 @@ public struct AppFeatureView: View {
 
     public var body: some View {
         WithViewStore(store) { viewStore in
-            VStack {
-                Text("Paste a Mastodon Link, or try a sample Toot")
-                Button("View a Sample") {
-                    viewStore.send(.load([URL(string: "https://mastodon.social/@harshil/109572736506622176")!]))
+            NavigationStack {
+                VStack {
+                    Text("Paste a Mastodon Link, or try a sample Toot")
+                    Button("View a Sample") {
+                        viewStore.send(.load([URL(string: "https://mastodon.social/@harshil/109572736506622176")!]))
+                    }
+                    .buttonStyle(BigCapsuleButton())
+                    PasteButtonThreadSafe(payloadType: URL.self) { urls in
+                        viewStore.send(.load(urls))
+                    }
+                    .buttonStyle(BigCapsuleButton())
                 }
-                .buttonStyle(BigCapsuleButton())
-                PasteButtonThreadSafe(payloadType: URL.self) { urls in
-                    viewStore.send(.load(urls))
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            viewStore.send(.setShowingAuthentication(true))
+                        } label: {
+                            if viewStore.loggedIn {
+                                Image(systemName: "person.circle.fill")
+                            } else {
+                                Image(systemName: "lock.fill")
+                            }
+                        }
+                    }
                 }
-                .buttonStyle(BigCapsuleButton())
-                Button("Log in") {
-                    viewStore.send(.setShowingAuthentication(true))
+                .onAppear {
+                    viewStore.send(.onAppear)
                 }
-                .buttonStyle(BigCapsuleButton())
             }
             .sheet(isPresented: viewStore.binding(get: \.showingExport, send: AppFeature.Action.setShowingExport)) {
                 NavigationStack {

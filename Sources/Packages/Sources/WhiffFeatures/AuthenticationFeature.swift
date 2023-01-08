@@ -32,7 +32,7 @@ public struct AuthenticationFeature: ReducerProtocol, Sendable {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                state.loggedIn = authenticator.existingToken != nil
+                state.loggedIn = authenticator.loggedIn
                 return .none
             case let .setDomain(domain):
                 state.domain = domain
@@ -75,6 +75,8 @@ public struct AuthenticationFeatureView: View {
         WithViewStore(store) { viewStore in
             Group {
                 if viewStore.loggedIn {
+                    Text("You're Logged In")
+                        .font(.title2)
                     Button("Log Out") {
                         viewStore.send(.logout)
                     }
