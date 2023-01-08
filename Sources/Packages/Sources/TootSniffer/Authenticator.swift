@@ -24,6 +24,7 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
     }
 
     public var existingToken: String? {
+        // This token has an extremely limited scope (only read:status) so it should be fine to just dump it in defaults.
         guard let token = UserDefaults.standard.string(forKey: Constants.tokenStorageKey) else { return nil }
         return token
     }
