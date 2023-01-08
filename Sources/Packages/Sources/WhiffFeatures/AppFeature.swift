@@ -8,6 +8,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
         public var showingExport = false
         public var showingAuthentication = false
         public var exportState = ExportFeature.State()
+        public var authenticationState = AuthenticationFeature.State()
 
         public init() {
         }
@@ -24,6 +25,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
         case setShowingExport(Bool)
         case setShowingAuthentication(Bool)
         case export(ExportFeature.Action)
+        case authenticate(AuthenticationFeature.Action)
     }
 
     public init() {
@@ -52,6 +54,9 @@ public struct AppFeature: ReducerProtocol, Sendable {
         Scope(state: \.exportState, action: /Action.export) {
             ExportFeature()
         }
+        Scope(state: \.authenticationState, action: /Action.authenticate) {
+            AuthenticationFeature()
+        }
     }
 
 }
@@ -76,6 +81,10 @@ public struct AppFeatureView: View {
                     viewStore.send(.load(urls))
                 }
                 .buttonStyle(BigCapsuleButton())
+                Button("Log in") {
+                    viewStore.send(.setShowingAuthentication(true))
+                }
+                .buttonStyle(BigCapsuleButton())
             }
             .sheet(isPresented: viewStore.binding(get: \.showingExport, send: AppFeature.Action.setShowingExport)) {
                 NavigationStack {
@@ -91,11 +100,11 @@ public struct AppFeatureView: View {
             }
             .sheet(isPresented: viewStore.binding(get: \.showingAuthentication, send: AppFeature.Action.setShowingAuthentication)) {
                 NavigationStack {
-                    ExportFeatureView(store: store.scope(state: \.exportState, action: AppFeature.Action.export))
+                    AuthenticationFeatureView(store: store.scope(state: \.authenticationState, action: AppFeature.Action.authenticate))
                         .toolbar {
                             ToolbarItem(placement: .confirmationAction) {
                                 Button("Done") {
-                                    viewStore.send(.setShowingExport(false))
+                                    viewStore.send(.setShowingAuthentication(false))
                                 }
                             }
                         }
