@@ -69,8 +69,7 @@ public final class TootSniffer: TootSnifferProtocol {
             let raw = try decoder.decode(Toot.self, from: data)
             return try cleanToot(raw)
         } catch {
-            print(error)
-            if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+            if let http = response as? HTTPURLResponse, http.statusCode == 401 || http.statusCode == 404, request.allHTTPHeaderFields?["Authorization"] == nil {
                 throw NotAuthenticatedError()
             }
             throw NotAMastadonPostError()
@@ -143,14 +142,14 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
 
 }
 
-struct NotAMastadonPostError: LocalizedError, Equatable {
-    let errorDescription: String? = "This isn't a Mastodon Post."
+public struct NotAMastadonPostError: LocalizedError, Equatable {
+    public let errorDescription: String? = "This isn't a Mastodon Post."
 }
 
-struct NoLinkParameterError: LocalizedError, Equatable {
-    let errorDescription: String? = "Unable to parse Toot."
+public struct NoLinkParameterError: LocalizedError, Equatable {
+    public let errorDescription: String? = "Unable to parse Toot."
 }
 
-struct NotAuthenticatedError: LocalizedError, Equatable {
-    let errorDescription: String? = "This Toot requires authentication to view."
+public struct NotAuthenticatedError: LocalizedError, Equatable {
+    public let errorDescription: String? = "This Toot couldn't be loaded. It may not be publicly visible, you can log in to try again."
 }
