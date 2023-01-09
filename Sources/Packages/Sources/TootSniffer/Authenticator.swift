@@ -1,5 +1,5 @@
-import Foundation
 import AuthenticationServices
+import Foundation
 
 /// Protocol for authenticating against a Mastodon server API.
 public protocol AuthenticatorProtocol: Sendable {
@@ -16,10 +16,10 @@ public protocol AuthenticatorProtocol: Sendable {
     func logout()
 }
 
-extension AuthenticatorProtocol {
+public extension AuthenticatorProtocol {
 
     /// Conveninence getter for login status.
-    public var loggedIn: Bool {
+    var loggedIn: Bool {
         existingToken != nil
     }
 
@@ -74,7 +74,10 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
     /// - Returns: An OAuth code to be redeemed for a Bearer Token.
     func obtainOAuthCode(from host: String, clientDetails: OAuthAppCreatePostResponse) async throws -> String {
         // example.com host will be rewritten below
-        var urlComponents = URLComponents(string: "https://example.com/oauth/authorize?response_type=code&client_id=\(clientDetails.clientId)&redirect_uri=\(Constants.redirectURI)&scope=\(Constants.scope)")!
+        var urlComponents =
+            URLComponents(
+                string: "https://example.com/oauth/authorize?response_type=code&client_id=\(clientDetails.clientId)&redirect_uri=\(Constants.redirectURI)&scope=\(Constants.scope)"
+            )!
         urlComponents.host = host
         return try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(url: urlComponents.url!, callbackURLScheme: "whiff", completionHandler: { url, error in
@@ -175,7 +178,6 @@ extension AuthenticationServicesAuthenticator {
     }
 
 }
-
 
 public final class UnimplementedAuthenticator: AuthenticatorProtocol {
 

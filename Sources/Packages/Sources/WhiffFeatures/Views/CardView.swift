@@ -15,8 +15,14 @@ struct CardView: View {
     var body: some View {
         VStack(spacing: 0) {
             if let image = card.image {
-                ImageWrapperView(image: images[URLKey(image, .remote)], blurhash: images[URLKey(image, .remote)], size: CGSize(width: card.width, height: card.height), contentMode: .fit, type: .image)
-                    .frame(maxWidth: .infinity)
+                ImageWrapperView(
+                    image: images[URLKey(image, .remote)],
+                    blurhash: images[URLKey(image, .remote)],
+                    size: CGSize(width: card.width, height: card.height),
+                    contentMode: .fit,
+                    type: .image
+                )
+                .frame(maxWidth: .infinity)
             }
             HStack {
                 VStack(alignment: .leading, spacing: 5) {
