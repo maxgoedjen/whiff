@@ -13,7 +13,7 @@ public final actor StubTootSniffer: TootSnifferProtocol {
         self.contextResult = contextResult
     }
 
-    public func sniff(url: URL) async throws -> Toot {
+    public func sniff(url: URL, authToken: String?) async throws -> Toot {
         resultCallCount += 1
         switch result {
         case let .success(success):
@@ -23,7 +23,7 @@ public final actor StubTootSniffer: TootSnifferProtocol {
         }
     }
 
-    public func sniffContext(url: URL) async throws -> TootContext {
+    public func sniffContext(url: URL, authToken: String?) async throws -> TootContext {
         contextResultCallCount += 1
         switch contextResult {
         case let .success(success):
