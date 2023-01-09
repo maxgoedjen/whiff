@@ -1,8 +1,8 @@
 import ComposableArchitecture
+import os
 import SwiftUI
 import TootSniffer
 import WhiffFeatures
-import os
 
 public final class StubAuthenticator: AuthenticatorProtocol, @unchecked Sendable {
 
@@ -17,7 +17,7 @@ public final class StubAuthenticator: AuthenticatorProtocol, @unchecked Sendable
     private let lock = OSAllocatedUnfairLock()
 
     init(existingToken: String? = nil, obtainResult: Result<String, Error> = .success(UUID().uuidString)) {
-        self.token = existingToken
+        token = existingToken
         self.obtainResult = obtainResult
     }
 
@@ -36,4 +36,3 @@ public final class StubAuthenticator: AuthenticatorProtocol, @unchecked Sendable
     }
 
 }
-

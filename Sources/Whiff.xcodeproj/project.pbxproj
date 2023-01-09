@@ -56,6 +56,8 @@
 		5030F652295AACCE002939E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5030F655295AACCE002939E9 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		50AA2AED295B9ECD005BC885 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		50B38C8D296BB5C70057A980 /* Whiff.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Whiff.entitlements; sourceTree = "<group>"; };
+		50B38C8E296BB5E00057A980 /* WhiffExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WhiffExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 		502B1250295B69EA002C9C11 /* WhiffExtension */ = {
 			isa = PBXGroup;
 			children = (
+				50B38C8E296BB5E00057A980 /* WhiffExtension.entitlements */,
 				502B1253295B69EA002C9C11 /* ActionViewController.swift */,
 				502B1255295B69EA002C9C11 /* MainInterface.storyboard */,
 				502B1258295B69EA002C9C11 /* Info.plist */,
@@ -129,6 +132,7 @@
 		5030F64D295AACCD002939E9 /* Whiff */ = {
 			isa = PBXGroup;
 			children = (
+				50B38C8D296BB5C70057A980 /* Whiff.entitlements */,
 				50AA2AED295B9ECD005BC885 /* Info.plist */,
 				5030F64E295AACCD002939E9 /* WhiffApp.swift */,
 				5030F652295AACCE002939E9 /* Assets.xcassets */,
@@ -295,6 +299,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WhiffExtension/WhiffExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Z72PRUAWF6;
@@ -323,6 +328,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = WhiffExtension/WhiffExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Z72PRUAWF6;
@@ -467,6 +473,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Whiff/Whiff.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Whiff/Preview Content\"";
@@ -499,6 +506,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Whiff/Whiff.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Whiff/Preview Content\"";

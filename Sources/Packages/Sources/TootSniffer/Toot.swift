@@ -25,7 +25,13 @@ public struct Toot: Equatable, Sendable, Codable, Identifiable {
     public var allImages: [MediaAttachment] {
         var attachments = [MediaAttachment(url: account.avatar)] + mediaAttachments
         if let card, let image = card.image {
-            attachments.append(MediaAttachment(id: card.url.absoluteString , type: .image, url: image, meta: MediaAttachment.Meta(original: .init(width: card.width, height: card.height)), blurhash: card.blurhash))
+            attachments.append(MediaAttachment(
+                id: card.url.absoluteString,
+                type: .image,
+                url: image,
+                meta: MediaAttachment.Meta(original: .init(width: card.width, height: card.height)),
+                blurhash: card.blurhash
+            ))
         }
         return attachments
     }
@@ -70,6 +76,7 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
     public var size: CGSize {
         CGSize(width: meta.original.width, height: meta.original.height)
     }
+
     /// Image to display. URL for images, previewURL for videos and other media types.
     public var displayURL: URL {
         if case .image = type {
@@ -97,13 +104,12 @@ public struct MediaAttachment: Equatable, Sendable, Codable, Identifiable {
         self.blurhash = blurhash
     }
 
-
 }
 
-extension MediaAttachment {
+public extension MediaAttachment {
 
     /// Enum desecribing what kind of media an attachment is.
-    public enum MediaType: String, Codable, Sendable {
+    enum MediaType: String, Codable, Sendable {
         case image
         case gifv
         case video
@@ -113,10 +119,10 @@ extension MediaAttachment {
 
 }
 
-extension MediaAttachment {
+public extension MediaAttachment {
 
     /// Model for metadata associated with media.
-    public struct Meta: Equatable, Sendable, Codable {
+    struct Meta: Equatable, Sendable, Codable {
 
         /// The original size of the media.
         public let original: Size
@@ -125,10 +131,10 @@ extension MediaAttachment {
 
 }
 
-extension MediaAttachment.Meta {
+public extension MediaAttachment.Meta {
 
     /// The size of the media.
-    public struct Size: Equatable, Sendable, Codable {
+    struct Size: Equatable, Sendable, Codable {
 
         /// The width, in pixels, of the media.
         public let width: Int
@@ -272,7 +278,7 @@ public extension Toot {
                 previewUrl: URL(string: "https://example.com/video_thumb")!,
                 meta: MediaAttachment.Meta(original: MediaAttachment.Meta.Size(width: 100, height: 100)),
                 blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj"
-            )
+            ),
         ]
     )
 
@@ -283,7 +289,15 @@ public extension Toot {
         content: "Hello world. Hello world. Hello world. Hello world. Hello world.",
         account: Tooter(username: "@maxgoedjen", displayName: "Max Goedjen", avatar: URL(string: "https://example.com/avatar")!),
         mediaAttachments: [],
-        card: Card(title: "Some Card", description: "Some Description", url: URL(string: "https://example.com")!, image: URL(string: "https://example.com/cardimage")!, blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj", width: 100, height: 100)
+        card: Card(
+            title: "Some Card",
+            description: "Some Description",
+            url: URL(string: "https://example.com")!,
+            image: URL(string: "https://example.com/cardimage")!,
+            blurhash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj",
+            width: 100,
+            height: 100
+        )
     )
 
     static func placeholderWithAttachmentName(_ attachmentName: String) -> Toot {
