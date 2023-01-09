@@ -96,9 +96,11 @@ public struct AppFeatureView: View {
                             viewStore.send(.setShowingAuthentication(true))
                         } label: {
                             if viewStore.loggedIn {
-                                Image(systemName: "person.circle.fill")
+                                Image(systemName: "person.badge.shield.checkmark.fill")
+                                    .accessibilityLabel(Text("Logged in"))
                             } else {
-                                Image(systemName: "lock.fill")
+                                Image(systemName: "person.badge.key.fill")
+                                    .accessibilityLabel(Text("Log in"))
                             }
                         }
                     }

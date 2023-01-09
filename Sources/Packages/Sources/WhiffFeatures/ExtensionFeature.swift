@@ -88,7 +88,8 @@ public struct ExtensionFeatureView: View {
                                 Button {
                                     viewStore.send(.setShowingAuthentication(true))
                                 } label: {
-                                    Image(systemName: "lock.fill")
+                                    Image(systemName: "person.badge.key.fill")
+                                        .accessibilityLabel(Text("Log in"))
                                 }
                             }
 
