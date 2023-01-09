@@ -67,6 +67,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         switch action {
         case let .requested(url):
             state.lastURL = url
+            state.errorMessage = nil
             state.toot = nil
             state.images = [:]
             state.attributedContent = [:]
@@ -141,7 +142,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         switch action {
         case .settings(.load):
             return .none
-        case .tootSniffCompleted, .loadImageCompleted(.success), .settings, .tappedContextToot:
+        case .tootSniffCompleted(.success), .loadImageCompleted(.success), .settings, .tappedContextToot:
             if let toot = state.toot, case .settings(.linkColorModified) = action {
                 do {
                     state.attributedContent[toot.id] = UncheckedSendable(try attributedContent(from: toot, linkColor: state.settings.linkColor))

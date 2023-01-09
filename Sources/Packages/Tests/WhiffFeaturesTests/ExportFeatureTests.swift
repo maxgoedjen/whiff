@@ -61,6 +61,49 @@ final class ExportFeatureTests: XCTestCase {
         }
     }
 
+    func testAuthFailureAndRerequest() async throws {
+        let authenticator = StubAuthenticator(obtainResult: .success("TestToken"))
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext()), requiresAuthentiation: true))
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, authenticator)
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
+        await store.receive(.settings(.load))
+
+        await store.receive(.tootSniffCompleted(.failure(NotAuthenticatedError()))) {
+            $0.errorMessage = NotAuthenticatedError().errorDescription
+        }
+        await store.receive(.tootSniffContextCompleted(.failure(NotAuthenticatedError())))
+        _ = try await authenticator.obtainOAuthToken(from: "example.com")
+        await store.send(.rerequest)
+        await store.receive(.requested(url: URL(string: "https://example.com")!)) {
+            $0.errorMessage = nil
+        }
+        await store.receive(.settings(.load))
+        await store.receive(.tootSniffCompleted(.success(.placeholder))) {
+            $0.toot = .placeholder
+            $0.visibleContextIDs = [Toot.placeholder.id]
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholder.content))]
+        }
+        await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
+            $0.tootContext = TootContext()
+        }
+        await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
+            $0.images[.sampleAvatar] = .sampleAvatar
+        }
+        await store.receive(.rerendered(.success(.sampleRendered))) {
+            $0.rendered = .sampleRendered
+        }
+    }
+
     func testHTMLInToot() async throws {
         store = TestStore(
             initialState: ExportFeature.State(),
