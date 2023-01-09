@@ -6,12 +6,14 @@ import SwiftUI
 public protocol TootSnifferProtocol: Sendable {
     /// Retrieves a `Toot` model object from a Mastodon server's API.
     /// - Parameter url: The URL of the post to fetch.
+    /// - Parameter authToken: An optional OAuth token to use to authenticate the request. Optional, but some posts may be invisible without it.
     /// - Returns: A `Toot` model object, if the URL is a valid and accessible post.
-    func sniff(url: URL) async throws -> Toot
+    func sniff(url: URL, authToken: String?) async throws -> Toot
     /// Retrieves a `TootContext` model object from a Mastodon server's API.
     /// - Parameter url: The URL of the post to fetch the context of.
+    /// - Parameter authToken: An optional OAuth token to use to authenticate the request. Optional, but some posts may be invisible without it.
     /// - Returns: A `TootContext` model object, if the URL is a valid and accessible post.
-    func sniffContext(url: URL) async throws -> TootContext
+    func sniffContext(url: URL, authToken: String?) async throws -> TootContext
 }
 
 /// Concrete implementation of `TootSnifferProtocol`.
@@ -25,35 +27,41 @@ public final class TootSniffer: TootSnifferProtocol {
     public init() {
     }
 
-    public func sniff(url: URL) async throws -> Toot {
-        let apiURL = try await constructMastodonAPIURL(url: url, endpoint: .status)
-        return try await loadToot(url: apiURL)
+    public func sniff(url: URL, authToken: String?) async throws -> Toot {
+        let request = try await constructMastodonAPIURL(url: url, endpoint: .status, authToken: authToken)
+        return try await loadToot(request: request)
     }
 
-    public func sniffContext(url: URL) async throws -> TootContext {
-        let apiURL = try await constructMastodonAPIURL(url: url, endpoint: .context)
-        return try await loadTootContext(url: apiURL)
+    public func sniffContext(url: URL, authToken: String?) async throws -> TootContext {
+        let request = try await constructMastodonAPIURL(url: url, endpoint: .context, authToken: authToken)
+        return try await loadTootContext(request: request)
     }
 
     /// Constructs a Mastodon API URL for a given post URL and endpoint.
     /// - Parameters:
     ///   - url: The URL of the post to fetch.
+    /// - Parameter authToken: An optional OAuth token to use to authenticate the request. Optional, but some posts may be invisible without it.
     ///   - endpoint: The endpoint to fetch (either the post itself, or the context of the post).
     /// - Returns: The URL for the API specified.
-    private func constructMastodonAPIURL(url: URL, endpoint: Endpoint) async throws -> URL {
+    private func constructMastodonAPIURL(url: URL, endpoint: Endpoint, authToken: String?) async throws -> URLRequest {
         guard var apiLink = URLComponents(url: url, resolvingAgainstBaseURL: true),
               let id = apiLink.path.split(separator: "/").last
         else { throw NoLinkParameterError() }
         apiLink.path = "/api/v1/statuses/\(id)" + endpoint.rawValue
         guard let final = apiLink.url else { throw NoLinkParameterError() }
-        return final
+        var request = URLRequest(url: final)
+        if let authToken {
+            request.setValue("Bearer \(authToken)", forHTTPHeaderField: "Authorization")
+        }
+        return request
     }
 
     /// Loads and deserializes the `Toot` model.
     /// - Parameter url: The API endpoint URL for the post.
+    /// - Parameter authToken: An optional OAuth token to use to authenticate the request. Optional, but some posts may be invisible without it.
     /// - Returns: A `Toot` model object, if the URL is a valid and accessible post.
-    private func loadToot(url: URL) async throws -> Toot {
-        let (data, response) = try await URLSession.shared.data(from: url)
+    private func loadToot(request: URLRequest) async throws -> Toot {
+        let (data, response) = try await URLSession.shared.data(for: request)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .custom(dateDecoder)
@@ -61,8 +69,7 @@ public final class TootSniffer: TootSnifferProtocol {
             let raw = try decoder.decode(Toot.self, from: data)
             return try cleanToot(raw)
         } catch {
-            print(error)
-            if let http = response as? HTTPURLResponse, http.statusCode == 401 {
+            if let http = response as? HTTPURLResponse, http.statusCode == 401 || http.statusCode == 404, request.allHTTPHeaderFields?["Authorization"] == nil {
                 throw NotAuthenticatedError()
             }
             throw NotAMastadonPostError()
@@ -72,8 +79,8 @@ public final class TootSniffer: TootSnifferProtocol {
     /// Loads and deserializes the `TootContext` model.
     /// - Parameter url: The API endpoint URL for the post context.
     /// - Returns: A `TootContext` model object, if the URL is a valid and accessible post.
-    private func loadTootContext(url: URL) async throws -> TootContext {
-        let (data, _) = try await URLSession.shared.data(from: url)
+    private func loadTootContext(request: URLRequest) async throws -> TootContext {
+        let (data, _) = try await URLSession.shared.data(for: request)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         decoder.dateDecodingStrategy = .custom(dateDecoder)
@@ -125,24 +132,24 @@ public final class UnimplementedTootSniffer: TootSnifferProtocol {
     public init() {
     }
 
-    public func sniff(url: URL) async throws -> Toot {
+    public func sniff(url: URL, authToken: String?) async throws -> Toot {
         fatalError("Unimplemented")
     }
 
-    public func sniffContext(url: URL) async throws -> TootContext {
+    public func sniffContext(url: URL, authToken: String?) async throws -> TootContext {
         fatalError("Unimplemented")
     }
 
 }
 
-struct NotAMastadonPostError: LocalizedError, Equatable {
-    let errorDescription: String? = "This isn't a Mastodon Post."
+public struct NotAMastadonPostError: LocalizedError, Equatable {
+    public let errorDescription: String? = "This isn't a Mastodon Post."
 }
 
-struct NoLinkParameterError: LocalizedError, Equatable {
-    let errorDescription: String? = "Unable to parse Toot."
+public struct NoLinkParameterError: LocalizedError, Equatable {
+    public let errorDescription: String? = "Unable to parse Toot."
 }
 
-struct NotAuthenticatedError: LocalizedError, Equatable {
-    let errorDescription: String? = "This Toot requires authentication to view."
+public struct NotAuthenticatedError: LocalizedError, Equatable {
+    public let errorDescription: String? = "This Toot couldn't be loaded. It may not be publicly visible, you can log in to try again."
 }

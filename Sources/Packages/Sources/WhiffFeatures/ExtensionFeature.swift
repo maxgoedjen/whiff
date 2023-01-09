@@ -4,27 +4,37 @@ import TootSniffer
 
 public struct ExtensionFeature: ReducerProtocol, Sendable {
 
+    @Dependency(\.authenticator) var authenticator
     @Dependency(\.dismissExtension) var dismissExtension
 
     public struct State: Equatable, Sendable {
         public var exportState = ExportFeature.State()
+        public var authenticationState = AuthenticationFeature.State()
+        public var loggedIn = false
+        public var showingAuthentication = false
 
         public init() {
         }
     }
 
     public enum Action: Equatable {
+        case onAppear
         case tappedDone
         case dismissed
+        case setShowingAuthentication(Bool)
         case export(ExportFeature.Action)
+        case authenticate(AuthenticationFeature.Action)
     }
 
     public init() {
     }
 
     public var body: some ReducerProtocol<State, Action> {
-        Reduce { _, action in
+        Reduce { state, action in
             switch action {
+            case .onAppear:
+                state.loggedIn = authenticator.loggedIn
+                return .none
             case .tappedDone:
                 return .task {
                     await dismissExtension(nil)
@@ -32,6 +42,14 @@ public struct ExtensionFeature: ReducerProtocol, Sendable {
                 }
             case .dismissed:
                 return .none
+            case let .setShowingAuthentication(showingAuthentication):
+                state.showingAuthentication = showingAuthentication
+                return .none
+            case .authenticate(.response(.success)):
+                state.loggedIn = true
+                return .task {
+                    .export(.rerequest)
+                }
             default:
                 return .none
             }
@@ -39,6 +57,10 @@ public struct ExtensionFeature: ReducerProtocol, Sendable {
         Scope(state: \.exportState, action: /Action.export) {
             ExportFeature()
         }
+        Scope(state: \.authenticationState, action: /Action.authenticate) {
+            AuthenticationFeature()
+        }
+
     }
 
 }
@@ -61,9 +83,35 @@ public struct ExtensionFeatureView: View {
                                 viewStore.send(.tappedDone)
                             }
                         }
+                        if !viewStore.loggedIn {
+                            ToolbarItem(placement: .navigationBarLeading) {
+                                Button {
+                                    viewStore.send(.setShowingAuthentication(true))
+                                } label: {
+                                    Image(systemName: "person.badge.key.fill")
+                                        .accessibilityLabel(Text("Log in"))
+                                }
+                            }
+
+                        }
                     }
                     .navigationTitle("Whiff")
                     .navigationBarTitleDisplayMode(.inline)
+            }
+            .onAppear {
+                viewStore.send(.onAppear)
+            }
+            .sheet(isPresented: viewStore.binding(get: \.showingAuthentication, send: ExtensionFeature.Action.setShowingAuthentication)) {
+                NavigationStack {
+                    AuthenticationFeatureView(store: store.scope(state: \.authenticationState, action: ExtensionFeature.Action.authenticate))
+                        .toolbar {
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Done") {
+                                    viewStore.send(.setShowingAuthentication(false))
+                                }
+                            }
+                        }
+                }
             }
         }
     }

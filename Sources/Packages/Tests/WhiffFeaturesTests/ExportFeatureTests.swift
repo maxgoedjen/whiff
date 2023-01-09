@@ -19,6 +19,7 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
     }
@@ -37,9 +38,55 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
+        await store.receive(.settings(.load))
+        await store.receive(.tootSniffCompleted(.success(.placeholder))) {
+            $0.toot = .placeholder
+            $0.visibleContextIDs = [Toot.placeholder.id]
+            $0.attributedContent = [Toot.placeholder.id: UncheckedSendable(AttributedString(Toot.placeholder.content))]
+        }
+        await store.receive(.tootSniffContextCompleted(.success(TootContext()))) {
+            $0.tootContext = TootContext()
+        }
+        await store.receive(.loadImageCompleted(.success(.sampleAvatar))) {
+            $0.images[.sampleAvatar] = .sampleAvatar
+        }
+        await store.receive(.rerendered(.success(.sampleRendered))) {
+            $0.rendered = .sampleRendered
+        }
+    }
+
+    func testAuthFailureAndRerequest() async throws {
+        let authenticator = StubAuthenticator(obtainResult: .success("TestToken"))
+        store = TestStore(
+            initialState: ExportFeature.State(),
+            reducer: ExportFeature()
+                .dependency(\.keyValueStorage, StubStorage())
+                .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext()), requiresAuthentiation: true))
+                .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, authenticator)
+                .dependency(\.mainQueue, .main)
+        )
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
+        await store.receive(.settings(.load))
+
+        await store.receive(.tootSniffCompleted(.failure(NotAuthenticatedError()))) {
+            $0.errorMessage = NotAuthenticatedError().errorDescription
+        }
+        await store.receive(.tootSniffContextCompleted(.failure(NotAuthenticatedError())))
+        _ = try await authenticator.obtainOAuthToken(from: "example.com")
+        await store.send(.rerequest)
+        await store.receive(.requested(url: URL(string: "https://example.com")!)) {
+            $0.errorMessage = nil
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholder))) {
             $0.toot = .placeholder
@@ -65,9 +112,12 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithHTML), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholderWithHTML))) {
             $0.toot = .placeholderWithHTML
@@ -93,9 +143,12 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholderWithHTML), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholderWithHTML))) {
             $0.toot = .placeholderWithHTML
@@ -165,9 +218,12 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.failure(NotAMastadonPostError()), .failure(NotAMastadonPostError())))
                 .dependency(\.imageRenderer, StubImageRenderer(NotAMastadonPostError()))
                 .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.failure(NotAMastadonPostError()))) {
             $0.toot = nil
@@ -185,9 +241,12 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.failure(BadError()), .failure(BadError())))
                 .dependency(\.imageRenderer, StubImageRenderer(NotAMastadonPostError()))
                 .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.failure(BadError()))) {
             $0.toot = nil
@@ -203,9 +262,12 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .failure(NotAMastadonPostError())))
                 .dependency(\.imageRenderer, StubImageRenderer(NotAMastadonPostError()))
                 .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholder))) {
             $0.toot = .placeholder
@@ -223,9 +285,12 @@ final class ExportFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(URLError(.fileDoesNotExist)))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholder))) {
             $0.toot = .placeholder
@@ -255,9 +320,12 @@ final class ExportFeatureTests: XCTestCase {
                     "https://example.com/1",
                     "https://example.com/0",
                 ].map { URL(string: $0)! }))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         let blurhashes: [URLKey: ImageEquatable] = [
             URLKey("https://example.com/0", .blurhash): .sampleBlurhash,
@@ -320,9 +388,12 @@ final class ExportFeatureTests: XCTestCase {
                     "https://example.com/avatar",
                     "https://example.com/video_thumb",
                 ].map { URL(string: $0)! }))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         let blurhashes: [URLKey: ImageEquatable] = [
             URLKey("https://example.com/video_thumb", .blurhash): .sampleBlurhash,
@@ -361,9 +432,12 @@ final class ExportFeatureTests: XCTestCase {
                     "https://example.com/avatar",
                     "https://example.com/cardimage",
                 ].map { URL(string: $0)! }))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         let blurhashes: [URLKey: ImageEquatable] = [
             URLKey("https://example.com/cardimage", .blurhash): .sampleBlurhash,
@@ -409,9 +483,12 @@ final class ExportFeatureTests: XCTestCase {
                     "https://example.com/attachments/ancestor",
                     "https://example.com/attachments/descendant",
                 ].map { URL(string: $0)! }))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholderWithAttachmentName("root")))) {
             $0.toot = .placeholderWithAttachmentName("root")
@@ -492,9 +569,12 @@ final class ExportFeatureTests: XCTestCase {
                 ))))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
-        await store.send(.requested(url: URL(string: "https://example.com")!))
+        await store.send(.requested(url: URL(string: "https://example.com")!)) {
+            $0.lastURL = URL(string: "https://example.com")!
+        }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholderWithAttachmentName("root")))) {
             $0.toot = .placeholderWithAttachmentName("root")
@@ -526,6 +606,7 @@ final class ExportFeatureTests: XCTestCase {
             reducer: ExportFeature()
                 .dependency(\.keyValueStorage, StubStorage())
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
         )
         await store.send(.tappedContextToot(.placeholder))

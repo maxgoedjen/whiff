@@ -18,6 +18,7 @@ final class AppFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
                 .dependency(\.urlSession, .shared)
         )
@@ -29,23 +30,23 @@ final class AppFeatureTests: XCTestCase {
 
     func testLoadMultiple() async throws {
         await store.send(.load([URL(string: "https://example.com")!, URL(string: "https://example.com")!])) {
-            $0.showing = true
+            $0.showingExport = true
         }
     }
 
     func testLoadOne() async throws {
         await store.send(.load([URL(string: "https://example.com")!])) {
-            $0.showing = true
+            $0.showingExport = true
         }
     }
 
     func testDismiss() async throws {
         store = TestStore(
-            initialState: AppFeature.State(showing: true),
+            initialState: AppFeature.State(showingExport: true),
             reducer: AppFeature()
         )
-        await store.send(.setShowing(false)) {
-            $0.showing = false
+        await store.send(.setShowingExport(false)) {
+            $0.showingExport = false
             $0.exportState = ExportFeature.State()
         }
     }
