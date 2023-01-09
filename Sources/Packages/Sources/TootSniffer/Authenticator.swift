@@ -57,7 +57,7 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
     /// - Parameter host: The host to create the app on.
     /// - Returns: An OAuthAppCreatePostResponse struct, containing client id + secret.
     func obtainOAuthClientDetails(from host: String) async throws -> OAuthAppCreatePostResponse {
-        var urlComponents = URLComponents(string: "https://mastodon.social/api/v1/apps")!
+        var urlComponents = URLComponents(string: "https://example.com/api/v1/apps")!
         urlComponents.host = host
         var request = URLRequest(url: urlComponents.url!)
         request.httpMethod = "POST"
