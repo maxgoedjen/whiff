@@ -18,6 +18,7 @@ final class AppFeatureTests: XCTestCase {
                 .dependency(\.tootSniffer, StubTootSniffer(.success(.placeholder), .success(TootContext())))
                 .dependency(\.imageRenderer, StubImageRenderer(.sampleRendered))
                 .dependency(\.imageLoader, StubImageLoader(.sampleAvatar))
+                .dependency(\.authenticator, StubAuthenticator())
                 .dependency(\.mainQueue, .main)
                 .dependency(\.urlSession, .shared)
         )
