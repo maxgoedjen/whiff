@@ -34,13 +34,29 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
     }
 
     public func obtainOAuthToken(from host: String) async throws -> String {
-        let code = try await obtainOAuthCode(from: host)
-        return try await obtainOAuthToken(code: code, host: host)
+        let clientDetails = try await obtainOAuthClientDetails(from: host)
+        let code = try await obtainOAuthCode(from: host, clientDetails: clientDetails)
+        return try await obtainOAuthToken(code: code, host: host, clientDetails: clientDetails)
     }
 
-    func obtainOAuthCode(from host: String) async throws -> String {
+    func obtainOAuthClientDetails(from host: String) async throws -> OAuthAppCreatePostResponse {
+        var urlComponents = URLComponents(string: "https://mastodon.social/api/v1/apps")!
+        urlComponents.host = host
+        var request = URLRequest(url: urlComponents.url!)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        request.httpBody = try encoder.encode(OAuthAppCreatePostBody())
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return try decoder.decode(OAuthAppCreatePostResponse.self, from: data)
+    }
+
+    func obtainOAuthCode(from host: String, clientDetails: OAuthAppCreatePostResponse) async throws -> String {
         // example.com host will be rewritten below
-        var urlComponents = URLComponents(string: "https://example.com/oauth/authorize?response_type=code&client_id=\(Constants.clientID)&redirect_uri=\(Constants.redirectURI)&scope=read:statuses")!
+        var urlComponents = URLComponents(string: "https://example.com/oauth/authorize?response_type=code&client_id=\(clientDetails.clientId)&redirect_uri=\(Constants.redirectURI)&scope=\(Constants.scope)")!
         urlComponents.host = host
         return try await withCheckedThrowingContinuation { continuation in
             let session = ASWebAuthenticationSession(url: urlComponents.url!, callbackURLScheme: "whiff", completionHandler: { url, error in
@@ -57,13 +73,15 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
         }
     }
 
-    func obtainOAuthToken(code: String, host: String) async throws -> String {
+    func obtainOAuthToken(code: String, host: String, clientDetails: OAuthAppCreatePostResponse) async throws -> String {
         var urlComponents = URLComponents(string: "https://example.com/oauth/token")!
         urlComponents.host = host
         var request = URLRequest(url: urlComponents.url!)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(OAuthTokenPostBody(code: code))
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        request.httpBody = try encoder.encode(OAuthTokenPostBody(code: code, clientId: clientDetails.clientId, clientSecret: clientDetails.clientSecret))
         let (data, _) = try await URLSession.shared.data(for: request)
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -81,11 +99,8 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
 extension AuthenticationServicesAuthenticator {
 
     enum Constants {
-        static let clientID = "cwlwRcvt6c2uS4qDnEddHJQPqyTs29t3qWct6-xMKCI"
-        // This isn't _REALLY_ a secret, but we'll do some light obfuscation just in case any bots are trawling
-        static let clientThing = String(data: Data(base64Encoded: "bS1KNTRoMHA1M0JCRnBoVFMAXRSNTVZYk5IUGxtdlBydUlTTkFrZEJLcFlXOA=="
-            .replacing("MAX", with: ""))!, encoding: .utf8)
         static let redirectURI = "whiff://auth_redirect"
+        static let scope = "read:statuses"
         static let tokenStorageKey = "AuthenticatorProtocol.tokenStorageKey"
     }
 
@@ -93,12 +108,24 @@ extension AuthenticationServicesAuthenticator {
 
 extension AuthenticationServicesAuthenticator {
 
+    struct OAuthAppCreatePostBody: Encodable {
+        let clientName = "Whiff"
+        let redirectUris = Constants.redirectURI
+        let scopes = Constants.scope
+        let website = "https://github.com/maxgoedjen/whiff"
+    }
+
+    struct OAuthAppCreatePostResponse: Decodable {
+        let clientId: String
+        let clientSecret: String
+    }
+
     struct OAuthTokenPostBody: Encodable {
         let code: String
-        let grant_type = "authorization_code"
-        let client_id = Constants.clientID
-        let client_secret = Constants.clientThing
-        let redirect_uri = Constants.redirectURI
+        let grantType = "authorization_code"
+        let clientId: String
+        let clientSecret: String
+        let redirectUri = Constants.redirectURI
     }
 
     struct OAuthTokenPostResponse: Decodable {
