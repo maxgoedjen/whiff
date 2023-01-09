@@ -17,7 +17,7 @@ public final actor StubTootSniffer: TootSnifferProtocol {
 
     public func sniff(url: URL, authToken: String?) async throws -> Toot {
         resultCallCount += 1
-        if requiresAuthentiation && authToken == nil {
+        if requiresAuthentiation, authToken == nil {
             throw NotAuthenticatedError()
         }
         switch result {
@@ -30,7 +30,7 @@ public final actor StubTootSniffer: TootSnifferProtocol {
 
     public func sniffContext(url: URL, authToken: String?) async throws -> TootContext {
         contextResultCallCount += 1
-        if requiresAuthentiation && authToken == nil {
+        if requiresAuthentiation, authToken == nil {
             throw NotAuthenticatedError()
         }
         switch contextResult {
