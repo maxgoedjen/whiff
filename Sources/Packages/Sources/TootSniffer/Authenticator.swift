@@ -33,14 +33,18 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
     public init() {
     }
 
+    private var defaults: UserDefaults {
+        UserDefaults(suiteName: Constants.defaultsSuite)!
+    }
+
     public var existingToken: String? {
         // This token has an extremely limited scope (only read:status) so it should be fine to just dump it in defaults.
-        guard let token = UserDefaults(suiteName: Constants.defaultsSuite)!.string(forKey: Constants.tokenStorageKey) else { return nil }
+        guard let token = defaults.string(forKey: Constants.tokenStorageKey) else { return nil }
         return token
     }
 
     private func saveToken(_ token: String) {
-        UserDefaults(suiteName: Constants.defaultsSuite)!.set(token, forKey: Constants.tokenStorageKey)
+        defaults.set(token, forKey: Constants.tokenStorageKey)
     }
 
     public func obtainOAuthToken(from host: String) async throws -> String {
@@ -118,7 +122,7 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
     }
 
     public func logout() {
-        UserDefaults.standard.removeObject(forKey: Constants.tokenStorageKey)
+        defaults.removeObject(forKey: Constants.tokenStorageKey)
     }
 
 }
