@@ -35,12 +35,12 @@ public final class AuthenticationServicesAuthenticator: AuthenticatorProtocol {
 
     public var existingToken: String? {
         // This token has an extremely limited scope (only read:status) so it should be fine to just dump it in defaults.
-        guard let token = UserDefaults.standard.string(forKey: Constants.tokenStorageKey) else { return nil }
+        guard let token = UserDefaults(suiteName: Constants.defaultsSuite)!.string(forKey: Constants.tokenStorageKey) else { return nil }
         return token
     }
 
     private func saveToken(_ token: String) {
-        UserDefaults.standard.set(token, forKey: Constants.tokenStorageKey)
+        UserDefaults(suiteName: Constants.defaultsSuite)!.set(token, forKey: Constants.tokenStorageKey)
     }
 
     public func obtainOAuthToken(from host: String) async throws -> String {
@@ -127,6 +127,7 @@ extension AuthenticationServicesAuthenticator {
 
     enum Constants {
         static let redirectURI = "whiff://auth_redirect"
+        static let defaultsSuite = "group.maxgoedjen.whiff"
         static let scope = "read:statuses"
         static let tokenStorageKey = "AuthenticatorProtocol.tokenStorageKey"
     }
