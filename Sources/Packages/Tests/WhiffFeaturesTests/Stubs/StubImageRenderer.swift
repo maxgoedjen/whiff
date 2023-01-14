@@ -14,7 +14,7 @@ public final class StubImageRenderer: ImageRendererProtocol, Sendable {
         result = .failure(error)
     }
 
-    public func render(state: ExportFeature.State) async throws -> ImageEquatable {
+    public func render(state: ExportFeature.State, colorScheme: ColorScheme?) async throws -> ImageEquatable {
         try result.get()
     }
 
