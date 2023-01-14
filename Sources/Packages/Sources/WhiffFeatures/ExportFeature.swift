@@ -353,6 +353,9 @@ public struct ExportFeatureView: View {
                     .navigationBarTitleDisplayMode(.inline)
                 }
             }
+            .onChange(of: colorScheme) {
+                viewStore.send(.colorSchemeChanged($0))
+            }
             .onAppear {
                 viewStore.send(.colorSchemeChanged(colorScheme))
             }
