@@ -27,12 +27,12 @@ public final class ImageRendererSwiftUI: ImageRendererProtocol {
                         settings: state.settings
                     )
                     .frame(width: 400)
-                }
-                if idx < (state.allToots.count - 1) {
-                    // Divider doesn't work well in ImageRenderer
-                    Rectangle()
-                        .foregroundColor(.gray.opacity(0.25))
-                        .frame(height: 2)
+                    if idx < (state.visibleContextIDs.count - 1) {
+                        // Divider doesn't work well in ImageRenderer
+                        Rectangle()
+                            .foregroundColor(.gray.opacity(0.25))
+                            .frame(height: 2)
+                    }
                 }
             }
         }
