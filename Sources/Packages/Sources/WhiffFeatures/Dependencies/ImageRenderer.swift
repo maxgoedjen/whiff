@@ -4,14 +4,14 @@ import SwiftUI
 /// Protocol for rendering an exportable image based on `ExportFeature.State`.
 public protocol ImageRendererProtocol: Sendable {
 
-    @MainActor func render(state: ExportFeature.State) async throws -> ImageEquatable
+    @MainActor func render(state: ExportFeature.State, colorScheme: ColorScheme?) async throws -> ImageEquatable
 
 }
 
 /// Concrete implementation of `ImageRendererProtocol` which uses SwiftUI's `ImageRenderer`.
 public final class ImageRendererSwiftUI: ImageRendererProtocol {
 
-    public func render(state: ExportFeature.State) async throws -> ImageEquatable {
+    public func render(state: ExportFeature.State, colorScheme: ColorScheme?) async throws -> ImageEquatable {
         guard state.toot != nil else {
             throw UnableToRenderError()
         }
@@ -37,6 +37,7 @@ public final class ImageRendererSwiftUI: ImageRendererProtocol {
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: state.settings.roundCorners ? 15 : 0))
+        .environment(\.colorScheme, colorScheme ?? .light)
 
         let renderer =
             ImageRenderer(content: view)
@@ -50,7 +51,7 @@ public final class ImageRendererSwiftUI: ImageRendererProtocol {
 
 public final class UnimplementedImageRenderer: ImageRendererProtocol {
 
-    public func render(state: ExportFeature.State) async throws -> ImageEquatable {
+    public func render(state: ExportFeature.State, colorScheme: ColorScheme?) async throws -> ImageEquatable {
         fatalError()
     }
 

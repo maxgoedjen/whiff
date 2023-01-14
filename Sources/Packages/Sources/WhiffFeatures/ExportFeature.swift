@@ -18,6 +18,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         public var tootContext: TootContext?
         public var attributedContent: [Toot.ID: UncheckedSendable<AttributedString>] = [:]
         public var errorMessage: String?
+        public var colorScheme: UncheckedSendable<ColorScheme>?
         public var rendered: ImageEquatable?
         public var showingSettings = false
         public var settings = SettingsFeature.State()
@@ -42,6 +43,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 
     public enum Action: Equatable {
         case requested(url: URL)
+        case colorSchemeChanged(ColorScheme)
         case rerequest
         case tootSniffCompleted(TaskResult<Toot>)
         case tootSniffContextCompleted(TaskResult<TootContext>)
@@ -85,6 +87,9 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             return .task {
                 .requested(url: url)
             }
+        case let .colorSchemeChanged(colorScheme):
+            state.colorScheme = UncheckedSendable(colorScheme)
+            return .none
         case let .tootSniffCompleted(.success(toot)):
             state.toot = toot
             state.visibleContextIDs.insert(toot.id)
@@ -164,7 +169,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             return .task { [state] in
                 .rerendered(
                     await TaskResult { @MainActor [state] in
-                        try await imageRenderer.render(state: state)
+                        try await imageRenderer.render(state: state, colorScheme: state.colorScheme?.value)
                     }
                 )
             }
@@ -252,6 +257,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
 public struct ExportFeatureView: View {
 
     let store: StoreOf<ExportFeature>
+    @Environment(\.colorScheme) var colorScheme
 
     public init(store: StoreOf<ExportFeature>) {
         self.store = store
@@ -346,6 +352,9 @@ public struct ExportFeatureView: View {
                     .navigationTitle("Loading Toot")
                     .navigationBarTitleDisplayMode(.inline)
                 }
+            }
+            .onAppear {
+                viewStore.send(.colorSchemeChanged(colorScheme))
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
