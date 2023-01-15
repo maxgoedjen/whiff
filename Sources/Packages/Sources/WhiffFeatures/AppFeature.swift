@@ -9,17 +9,21 @@ public struct AppFeature: ReducerProtocol, Sendable {
     public struct State: Equatable, Sendable {
         public var loggedIn = false
         public var showingExport = false
-        public var showingAuthentication = false
+        public var showingAuthentication: AuthLocation = .notShowing
         public var exportState = ExportFeature.State()
         public var authenticationState = AuthenticationFeature.State()
 
         public init() {
         }
 
-        internal init(showingExport: Bool = false, showingAuthentication: Bool = false, exportState: ExportFeature.State = ExportFeature.State()) {
+        internal init(showingExport: Bool = false, showingAuthentication: AuthLocation = .notShowing, exportState: ExportFeature.State = ExportFeature.State()) {
             self.showingExport = showingExport
             self.exportState = exportState
-            self.showingAuthentication = showingAuthentication
+            self.showingAuthentication = .notShowing
+        }
+
+        public enum AuthLocation: Equatable, Sendable {
+            case notShowing, topLevel, onExport
         }
     }
 
@@ -27,7 +31,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
         case onAppear
         case load([URL])
         case setShowingExport(Bool)
-        case setShowingAuthentication(Bool)
+        case setShowingAuthentication(AppFeature.State.AuthLocation)
         case export(ExportFeature.Action)
         case authenticate(AuthenticationFeature.Action)
     }
@@ -53,6 +57,9 @@ public struct AppFeature: ReducerProtocol, Sendable {
                 return .none
             case let .setShowingAuthentication(showingAuthentication):
                 state.showingAuthentication = showingAuthentication
+                return .none
+            case .export(.tappedLogin):
+                state.showingAuthentication = .onExport
                 return .none
             default:
                 return .none
@@ -93,7 +100,7 @@ public struct AppFeatureView: View {
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
                         Button {
-                            viewStore.send(.setShowingAuthentication(true))
+                            viewStore.send(.setShowingAuthentication(.topLevel))
                         } label: {
                             if viewStore.loggedIn {
                                 Image(systemName: "person.badge.shield.checkmark.fill")
@@ -120,20 +127,44 @@ public struct AppFeatureView: View {
                             }
                         }
                 }
+                .authenticationView(store: store, location: .onExport)
             }
-            .sheet(isPresented: viewStore.binding(get: \.showingAuthentication, send: AppFeature.Action.setShowingAuthentication)) {
-                NavigationStack {
-                    AuthenticationFeatureView(store: store.scope(state: \.authenticationState, action: AppFeature.Action.authenticate))
-                        .toolbar {
-                            ToolbarItem(placement: .confirmationAction) {
-                                Button("Done") {
-                                    viewStore.send(.setShowingAuthentication(false))
+            .authenticationView(store: store, location: .topLevel)
+        }
+    }
+
+}
+
+struct AppFeatureAuthenticationView: ViewModifier {
+
+    let store: StoreOf<AppFeature>
+    let location: AppFeature.State.AuthLocation
+
+    func body(content: Content) -> some View {
+        WithViewStore(store) { viewStore in
+            content
+                .sheet(isPresented: viewStore.binding(get: { $0.showingAuthentication == location }, send: { _ in  AppFeature.Action.setShowingAuthentication(.notShowing) })) {
+                    NavigationStack {
+                        AuthenticationFeatureView(store: store.scope(state: \.authenticationState, action: AppFeature.Action.authenticate))
+                            .toolbar {
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button("Done") {
+                                        viewStore.send(.setShowingAuthentication(.notShowing))
+                                    }
                                 }
                             }
-                        }
+                    }
                 }
-            }
         }
+    }
+
+
+}
+
+extension View {
+
+    func authenticationView(store: StoreOf<AppFeature>, location: AppFeature.State.AuthLocation) -> some View {
+        modifier(AppFeatureAuthenticationView(store: store, location: location))
     }
 
 }

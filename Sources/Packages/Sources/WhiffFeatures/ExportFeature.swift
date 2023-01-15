@@ -17,7 +17,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         public var toot: Toot?
         public var tootContext: TootContext?
         public var attributedContent: [Toot.ID: UncheckedSendable<AttributedString>] = [:]
-        public var errorMessage: String?
+        public var errorState: ErrorState?
         public var colorScheme: UncheckedSendable<ColorScheme>?
         public var rendered: ImageEquatable?
         public var showingSettings = false
@@ -39,6 +39,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
                 visibleContextIDs = [toot.id]
             }
         }
+
+        public struct ErrorState: Equatable, Sendable {
+            public var message: String
+            public var button: String?
+        }
     }
 
     public enum Action: Equatable {
@@ -49,6 +54,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         case tootSniffContextCompleted(TaskResult<TootContext>)
         case loadImageCompleted(TaskResult<ImageLoadResponse>)
         case tappedContextToot(Toot)
+        case tappedLogin
         case tappedSettings(Bool)
         case settings(SettingsFeature.Action)
         case rerendered(TaskResult<ImageEquatable>)
@@ -69,7 +75,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         switch action {
         case let .requested(url):
             state.lastURL = url
-            state.errorMessage = nil
+            state.errorState = nil
             state.toot = nil
             state.images = [:]
             state.attributedContent = [:]
@@ -93,15 +99,24 @@ public struct ExportFeature: ReducerProtocol, Sendable {
         case let .tootSniffCompleted(.success(toot)):
             state.toot = toot
             state.visibleContextIDs.insert(toot.id)
-            state.errorMessage = nil
+            state.errorState = nil
             return parseTootAndLoadAttachments(toot: toot, state: &state)
         case let .tootSniffCompleted(.failure(error)):
             state.toot = nil
+            var errorState: ExportFeature.State.ErrorState
             if let localized = error as? LocalizedError, let message = localized.errorDescription {
-                state.errorMessage = message
+                errorState = .init(message: message)
             } else {
-                state.errorMessage = "Unknown Error"
+                errorState = .init(message: "Unknown Error")
             }
+            if error is NotAuthenticatedError {
+                if authenticator.loggedIn {
+                    errorState.button = "Change Account"
+                } else {
+                    errorState.button = "Log In"
+                }
+            }
+            state.errorState = errorState
             return .none
         case let .tootSniffContextCompleted(.success(context)):
             state.tootContext = context
@@ -125,6 +140,8 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             } else {
                 state.visibleContextIDs.insert(toot.id)
             }
+            return .none
+        case .tappedLogin:
             return .none
         case let .tappedSettings(showing):
             state.showingSettings = showing
@@ -330,13 +347,8 @@ public struct ExportFeatureView: View {
                         SettingsFeatureView(store: store.scope(state: \.settings, action: ExportFeature.Action.settings))
                             .presentationDetents([.medium])
                     }
-                } else if let error = viewStore.errorMessage {
-                    VStack {
-                        Text("Error")
-                            .font(.headline)
-                        Text(error)
-                    }
-                    .padding()
+                } else if let error = viewStore.errorState {
+                    ExportFeatureErrorView(viewStore: viewStore, errorState: error)
                 } else {
                     VStack {
                         TootView(toot: .placeholder, attributedContent: nil, images: [:], settings: viewStore.settings)
@@ -372,6 +384,28 @@ public struct ExportFeatureView: View {
 
         }
 
+    }
+
+}
+
+public struct ExportFeatureErrorView: View {
+
+    let viewStore: ViewStoreOf<ExportFeature>
+    let errorState: ExportFeature.State.ErrorState
+
+    public var body: some View {
+        VStack {
+            Text("Error")
+                .font(.headline)
+            Text(errorState.message)
+            if let buttonTitle = errorState.button {
+                Button(buttonTitle) {
+                    viewStore.send(.tappedLogin)
+                }
+                .buttonStyle(BigCapsuleButton())
+            }
+        }
+        .padding()
     }
 
 }

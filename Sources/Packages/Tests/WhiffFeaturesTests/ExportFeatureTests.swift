@@ -79,13 +79,14 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.settings(.load))
 
         await store.receive(.tootSniffCompleted(.failure(NotAuthenticatedError()))) {
-            $0.errorMessage = NotAuthenticatedError().errorDescription
+            $0.errorState = ExportFeature.State.ErrorState(message: NotAuthenticatedError().errorDescription!)
+            $0.errorState?.button = "Log In"
         }
         await store.receive(.tootSniffContextCompleted(.failure(NotAuthenticatedError())))
         _ = try await authenticator.obtainOAuthToken(from: "example.com")
         await store.send(.rerequest)
         await store.receive(.requested(url: URL(string: "https://example.com")!)) {
-            $0.errorMessage = nil
+            $0.errorState = nil
         }
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.success(.placeholder))) {
@@ -227,7 +228,7 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.failure(NotAMastadonPostError()))) {
             $0.toot = nil
-            $0.errorMessage = NotAMastadonPostError().localizedDescription
+            $0.errorState = ExportFeature.State.ErrorState(message: NotAMastadonPostError().localizedDescription)
         }
     }
 
@@ -250,7 +251,7 @@ final class ExportFeatureTests: XCTestCase {
         await store.receive(.settings(.load))
         await store.receive(.tootSniffCompleted(.failure(BadError()))) {
             $0.toot = nil
-            $0.errorMessage = "Unknown Error"
+            $0.errorState = ExportFeature.State.ErrorState(message: "Unknown Error")
         }
     }
 
