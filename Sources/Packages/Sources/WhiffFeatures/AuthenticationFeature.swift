@@ -83,7 +83,7 @@ public struct AuthenticationFeatureView: View {
                             viewStore.send(.logout)
                         }
                         .buttonStyle(BigCapsuleButton())
-                    }
+                    }.presentationDetents([.medium])
                 } else {
                     VStack {
                         Form {
@@ -107,6 +107,7 @@ public struct AuthenticationFeatureView: View {
                         .buttonStyle(BigCapsuleButton())
                         .disabled(viewStore.buttonDisabled)
                     }
+                    .presentationDetents([.medium])
                 }
             }
             .padding()

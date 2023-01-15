@@ -47,9 +47,13 @@ public struct ExtensionFeature: ReducerProtocol, Sendable {
                 return .none
             case .authenticate(.response(.success)):
                 state.loggedIn = true
+                state.showingAuthentication = false
                 return .task {
                     .export(.rerequest)
                 }
+            case .export(.tappedLogin):
+                state.showingAuthentication = true
+                return .none
             default:
                 return .none
             }
@@ -82,17 +86,6 @@ public struct ExtensionFeatureView: View {
                             Button("Done") {
                                 viewStore.send(.tappedDone)
                             }
-                        }
-                        if !viewStore.loggedIn {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button {
-                                    viewStore.send(.setShowingAuthentication(true))
-                                } label: {
-                                    Image(systemName: "person.badge.key.fill")
-                                        .accessibilityLabel(Text("Log in"))
-                                }
-                            }
-
                         }
                     }
                     .navigationTitle("Whiff")
