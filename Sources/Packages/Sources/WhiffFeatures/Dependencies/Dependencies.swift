@@ -19,7 +19,7 @@ public extension DependencyValues {
 }
 
 private enum KeyValueStorageKey: DependencyKey {
-    static let liveValue: KeyValueStorage = UserDefaultsStorage(defaults: .standard)
+    static let liveValue: KeyValueStorage = UserDefaultsStorage(defaults: UserDefaults(suiteName: "group.maxgoedjen.whiff")!)
     #if DEBUG
     static let testValue: KeyValueStorage = UnimplementedKeyValueStorage()
     #endif
