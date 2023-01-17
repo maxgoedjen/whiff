@@ -328,7 +328,7 @@ public struct ExportFeatureView: View {
                             Spacer()
                             if let rendered = viewStore.rendered?.image.value {
                                 if case .afterImage = viewStore.settings.linkStyle {
-                                    ShareLink(item: rendered, message: Text(rootToot.url.absoluteString), preview: SharePreview("Rendered Toot"))
+                                    ShareLink(item: rendered, message: Text("\(rootToot.url.absoluteString) ."), preview: SharePreview("Rendered Toot"))
                                         .buttonStyle(BigCapsuleButton())
                                 } else {
                                     ShareLink(item: rendered, preview: SharePreview("Rendered Toot"))
