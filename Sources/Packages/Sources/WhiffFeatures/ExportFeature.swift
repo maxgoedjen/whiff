@@ -79,9 +79,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             state.toot = nil
             state.images = [:]
             state.attributedContent = [:]
-            return .task {
-                return .settings(.load)
-            }
+            return .send(.settings(.load))
             .concatenate(with: .task {
                 .tootSniffCompleted(await TaskResult { try await tootSniffer.sniff(url: url, authToken: authenticator.existingToken) })
             })
@@ -90,9 +88,7 @@ public struct ExportFeature: ReducerProtocol, Sendable {
             })
         case .rerequest:
             guard let url = state.lastURL else { return .none }
-            return .task {
-                .requested(url: url)
-            }
+            return .send(.requested(url: url))
         case let .colorSchemeChanged(colorScheme):
             state.colorScheme = UncheckedSendable(colorScheme)
             return .none

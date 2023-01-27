@@ -48,9 +48,7 @@ public struct AppFeature: ReducerProtocol, Sendable {
             case let .load(urls):
                 guard let url = urls.first else { return .none }
                 state.showingExport = true
-                return .task {
-                    return .export(.requested(url: url))
-                }
+                return .send(.export(.requested(url: url)))
             case let .setShowingExport(showingExport):
                 state.showingExport = showingExport
                 state.exportState = ExportFeature.State()

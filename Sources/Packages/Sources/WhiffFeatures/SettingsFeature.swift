@@ -169,9 +169,7 @@ public struct SettingsFeature: ReducerProtocol, Sendable {
         case .load, .save:
             return .none
         default:
-            return .task {
-                .save
-            }
+            return .send(.save)
         }
     }
 

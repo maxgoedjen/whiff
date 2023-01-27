@@ -48,9 +48,7 @@ public struct ExtensionFeature: ReducerProtocol, Sendable {
             case .authenticate(.response(.success)):
                 state.loggedIn = true
                 state.showingAuthentication = false
-                return .task {
-                    .export(.rerequest)
-                }
+                return .send(.export(.rerequest))
             case .export(.tappedLogin):
                 state.showingAuthentication = true
                 return .none
