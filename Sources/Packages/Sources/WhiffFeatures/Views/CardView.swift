@@ -34,11 +34,9 @@ struct CardView: View {
                             .foregroundColor(settings.textColor)
                             .font(.system(.body, design: .rounded, weight: .regular))
                     }
-                    if let url = card.url {
-                        Text(url.absoluteString)
-                            .foregroundColor(settings.linkColor)
-                            .font(.system(.footnote, design: .rounded, weight: .regular))
-                    }
+                    Text(card.url.absoluteString)
+                        .foregroundColor(settings.linkColor)
+                        .font(.system(.footnote, design: .rounded, weight: .regular))
                 }
                 .padding()
                 Spacer()
