@@ -75,7 +75,7 @@ public struct AuthenticationFeatureView: View {
     public var body: some View {
         WithViewStore(store) { viewStore in
             Group {
-                if viewStore.loggedIn {
+                if viewStore.loggedIn { // <- mistyped property
                     VStack {
                         Text("You're Logged In")
                             .font(.title2)
