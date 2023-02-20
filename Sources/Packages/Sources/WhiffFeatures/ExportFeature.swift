@@ -225,9 +225,11 @@ public struct ExportFeature: ReducerProtocol, Sendable {
     }
 
     func attributedContent(from toot: Toot, linkColor: Color) throws -> AttributedString {
+        // Mastodon renders p break as more spacing than Apple does, so we'll juice it here.
+        let content = toot.content.replacingOccurrences(of: "</p><p>", with: "</p><br /><p>")
         // Gotta be unicode, not utf8
         let nsAttributed = try NSMutableAttributedString(
-            data: toot.content.data(using: .unicode)!,
+            data: content.data(using: .unicode)!,
             options: [.documentType: NSAttributedString.DocumentType.html],
             documentAttributes: nil
         )
